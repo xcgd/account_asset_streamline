@@ -17,21 +17,29 @@
 	                <field name="service_date" />
 	                <field name="quantity" />
 	            </xpath>
+	            <xpath expr="//button[@name='create_move']" position="replace" />
+                <xpath expr="//field[@name='depreciation_line_ids']" position="attributes">
+                    <attribute name="readonly">1</attribute>
+                </xpath>
 	            <xpath expr="//page[@string='General']" position="after">
-	                <page string='Informations'>
+	                <page string="Informations">
 	                	<group>
-		                	<group string='Insurance'>
-		                		<field name='insurance_type' />
-		                		<field name='insurance_contract_number' />
-		                		<field name='insurance_contract_amount' />
-		                		<field name='insurance_company_deductible' />
-		                		<field name='start_insurance_contract_date' />
-		                		<field name='end_insurance_contract_date' />
-		                		<field name='partner_id' />
+		                	<group string="Insurance">
+		                		<field name="insurance_type" />
+		                		<field name="insurance_contract_number" />
+		                		<field name="insurance_contract_amount" />
+		                		<field name="insurance_company_deductible" />
+		                		<field name="start_insurance_contract_date" />
+		                		<field name="end_insurance_contract_date" />
+		                		<field
+		                			name="insurance_partner_id"
+		                			domain="[('supplier', '=', 'True')]"
+		                			context="{'default_supplier': True}"
+		                		/>
 		                	</group>
-		                	<group string='Additional informations'>
-		                		<field name='disposal_date' />
-		                		<field name='sales_value' />
+		                	<group string="Additional informations">
+		                		<field name="disposal_date" />
+		                		<field name="sales_value" />
 		                	</group>
 	                	</group>
 	                </page>

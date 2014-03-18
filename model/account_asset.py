@@ -55,7 +55,7 @@ class account_asset_asset_streamline(osv.Model):
         'end_insurance_contract_date': fields.date(
             'Contract end date',
         ),
-        'partner_id': fields.many2one(
+        'insurance_partner_id': fields.many2one(
             'res.partner',
             'Contact partner',
         ),
