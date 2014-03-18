@@ -20,6 +20,7 @@
         'views/account_asset_view.xml',
     ],
     'demo': [
+        'demo/account_asset_demo.xml'
     ],
     'css': [
     ],

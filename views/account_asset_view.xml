@@ -1,17 +1,57 @@
 <openerp>
 <data>
+
     <record model="ir.ui.view" id="view_account_asset_asset_form">
         <field name="name">account.asset.asset.form</field>
         <field name="model">account.asset.asset</field>
     	<field name="inherit_id" ref="account_asset.view_account_asset_asset_form"/>
     	<field name="arch" type="xml">
             <data>
-	            <xpath
-	                expr="//field[@name='method_period']" position="replace">
+            	<xpath expr="//button[@name='set_to_draft']" position="after">
+                    <button name="validate" states="close" string="Reactivate" type="object" groups="account.group_account_manager" />
+                </xpath>
+	            <xpath expr="//field[@name='method_period']" position="replace">
+	                <field name="method_period" invisible="1"/>
+	            </xpath>
+	            <xpath expr="//field[@name='purchase_date']" position="after">
+	                <field name="service_date" />
+	                <field name="quantity" />
+	            </xpath>
+	            <xpath expr="//page[@string='General']" position="after">
+	                <page string='Informations'>
+	                	<group>
+		                	<group string='Insurance'>
+		                		<field name='insurance_type' />
+		                		<field name='insurance_contract_number' />
+		                		<field name='insurance_contract_amount' />
+		                		<field name='insurance_company_deductible' />
+		                		<field name='start_insurance_contract_date' />
+		                		<field name='end_insurance_contract_date' />
+		                		<field name='partner_id' />
+		                	</group>
+		                	<group string='Additional informations'>
+		                		<field name='disposal_date' />
+		                		<field name='sales_value' />
+		                	</group>
+	                	</group>
+	                </page>
+	            </xpath>
+            </data>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="view_account_asset_category_form">
+        <field name="name">account.asset.category.form</field>
+        <field name="model">account.asset.category</field>
+    	<field name="inherit_id" ref="account_asset.view_account_asset_category_form"/>
+    	<field name="arch" type="xml">
+            <data>
+	            <xpath expr="//field[@name='method_period']" position="replace">
 	                <field name="method_period" invisible="1"/>
 	            </xpath>
             </data>
         </field>
     </record>
+
 </data>
 </openerp>
