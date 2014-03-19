@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    
+        <record model="ir.ui.view" id="asset_modify_form">
+            <field name="name">wizard.asset.modify.form</field>
+            <field name="model">asset.modify</field>
+    		<field name="inherit_id" ref="account_asset.asset_modify_form"/>
+            <field name="arch" type="xml">
+	            <xpath expr="//label[@for='method_period']" position="replace" />
+	            <xpath expr="//field[@name='method_period']/parent::div" position="replace" />
+            </field>
+        </record>
+
+    </data>
+</openerp>

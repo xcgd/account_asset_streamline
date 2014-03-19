@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <openerp>
 <data>
 
@@ -11,7 +12,7 @@
                     <button name="validate" states="close" string="Reactivate" type="object" groups="account.group_account_manager" />
                 </xpath>
 	            <xpath expr="//field[@name='method_period']" position="replace">
-	                <field name="method_period" invisible="1"/>
+	                <field name="method_end_fct" attrs="{'invisible': [('method_time', '!=', 'number')]}"/>
 	            </xpath>
 	            <xpath expr="//field[@name='purchase_date']" position="after">
 	                <field name="service_date" />

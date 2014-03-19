@@ -1,7 +1,9 @@
 # -*- encoding: utf-8 -*-
 
-import time
 from openerp.osv import fields, osv
+import time
+from datetime import datetime, date
+from dateutil.relativedelta import relativedelta
 
 
 class account_asset_category_streamline(osv.Model):
@@ -13,57 +15,86 @@ class account_asset_category_streamline(osv.Model):
         'method_period': 1,
     }
 
-account_asset_category_streamline()
-
 
 class account_asset_asset_streamline(osv.Model):
 
     _name = 'account.asset.asset'
     _inherit = 'account.asset.asset'
 
+    def _get_method_end(self, cr, uid, ids, field_name, args, context=None):
+
+        assets = self.browse(cr, uid, ids, context)
+        res = {}
+        for asset in assets:
+            date = datetime.strptime(asset.service_date, "%Y-%m-%d").date()
+            prorata = asset.prorata
+            method_number = asset.method_number
+            if(prorata):
+                month_dec = relativedelta(months=method_number)
+            else:
+                month_dec = relativedelta(months=(method_number - 1))
+            res[asset.id] = date + month_dec
+        return res
+
     _columns = {
 
         'quantity': fields.char(
-            'Quantity',
+            u'Quantity',
             size=64,
         ),
         'service_date': fields.date(
-            'Placed in Service date',
+            u'Placed in Service date',
             required=True,
             readonly=True,
             states={
                 'draft': [('readonly', False)]
             },
         ),
+        'method_end_fct': fields.function(
+            _get_method_end,
+            type='date',
+            string=u'Calculated end date',
+            readonly=True,
+            store={
+                'account.asset.asset': (
+                    lambda self, cr, uid, ids, c={}: ids,
+                    ['service_date', 'method_number', 'prorata'],
+                    10
+                ),
+            },
+        ),
         'insurance_type': fields.char(
-            'Type',
+            u'Type',
             size=64,
         ),
         'insurance_contract_number': fields.char(
-            'Contract number',
+            u'Contract number',
             size=64,
         ),
         'insurance_contract_amount': fields.integer(
-            'Contract amount',
+            u'Contract amount',
         ),
         'insurance_company_deductible': fields.integer(
-            'Company deductible amount',
+            u'Company deductible amount',
         ),
         'start_insurance_contract_date': fields.date(
-            'Contract start date',
+            u'Contract start date',
         ),
         'end_insurance_contract_date': fields.date(
-            'Contract end date',
+            u'Contract end date',
         ),
         'insurance_partner_id': fields.many2one(
             'res.partner',
-            'Contact partner',
+            u'Contact partner',
         ),
         'disposal_date': fields.date(
-            'Asset disposal date',
+            u'Asset disposal date',
         ),
         'sales_value': fields.integer(
-            'Sales value',
+            u'Sales value',
+        ),
+        'last_depreciation_date': fields.date(
+            u'Last depreciation date'
         ),
     }
 
@@ -72,6 +103,9 @@ class account_asset_asset_streamline(osv.Model):
         'service_date': lambda *a: time.strftime('%Y-%m-%d')
     }
 
-account_asset_asset_streamline()
+    def deprecate(self, cr, uid, ids, context=None):
+
+        vals = {'last_depreciation_date': time.strftime('%Y-%m-%d')}
+        self.write(cr, uid, ids, vals, context=context)
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+<data>
+
+    <record model="ir.ui.view" id="view_account_asset_depreciation_wizard">
+        <field name="name">account.asset.depreciation.wizard</field>
+        <field name="model">account.asset.depreciation.wizard</field>
+        <field name="type">form</field>
+    	<field name="arch" type="xml">
+            <form string="Depreciation wizard" version="7.0">
+                <header>
+                    <button name="depreciate_assets" string="Depreciate selected assets" type="object" class="oe_highlight"/>
+                </header>
+            	<field
+            	    name="asset_ids"
+            	    required="True"
+            	    domain="[('id', 'in', [])]"
+            	    on_change="onchange_assets()"
+            	/>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="action_account_asset_depreciation_wizard">
+        <field name="name">Depreciate assets</field>
+        <field name="res_model">account.asset.depreciation.wizard</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">form</field>
+    </record>
+
+    <menuitem parent="account_asset.menu_finance_assets" id="menu_action_account_asset_depreciation_wizard"
+        sequence="300"
+        action="action_account_asset_depreciation_wizard"/>
+
+</data>
+</openerp>
