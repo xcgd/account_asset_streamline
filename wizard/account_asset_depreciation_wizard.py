@@ -57,4 +57,4 @@ class account_asset_depreciation_wizard(osv.TransientModel):
         asset_osv = self.pool.get('account.asset.asset')
         asset_read = self.read(cr, uid, ids, ['asset_ids'], context=context)
         asset_ids = asset_read[0]['asset_ids']
-        asset_osv.deprecate(cr, uid, asset_ids, context=context)
+        asset_osv.depreciate(cr, uid, asset_ids, context=context)

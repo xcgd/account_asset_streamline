@@ -11,8 +11,12 @@
             	<xpath expr="//button[@name='set_to_draft']" position="after">
                     <button name="validate" states="close" string="Reactivate" type="object" groups="account.group_account_manager" />
                 </xpath>
-	            <xpath expr="//field[@name='method_period']" position="replace">
+	            <xpath expr="//field[@name='method_period']" position="replace" />
+	            <xpath expr="//field[@name='method_number']" position="after">
 	                <field name="method_end_fct" attrs="{'invisible': [('method_time', '!=', 'number')]}"/>
+	            </xpath>
+	            <xpath expr="//field[@name='method_end']" position="after">
+	                <field name="method_number_fct" attrs="{'invisible': [('method_time', '!=', 'end')]}"/>
 	            </xpath>
 	            <xpath expr="//field[@name='purchase_date']" position="after">
 	                <field name="service_date" />
@@ -41,6 +45,24 @@
 		                	<group string="Additional informations">
 		                		<field name="disposal_date" />
 		                		<field name="sales_value" />
+		                	</group>
+	                	</group>
+	                </page>
+	                <page string="Analytique">
+	                	<group>
+		                	<group string="Analytique de l'immobilisation">
+                                <field name="a1_id" />
+                                <field name="a2_id" />
+                                <field name="a3_id" />
+                                <field name="a4_id" />
+                                <field name="a5_id" />
+		                	</group>
+		                	<group string="Analytique de la transaction">
+                                <field name="t1_id" />
+                                <field name="t2_id" />
+                                <field name="t3_id" />
+                                <field name="t4_id" />
+                                <field name="t5_id" />
 		                	</group>
 	                	</group>
 	                </page>

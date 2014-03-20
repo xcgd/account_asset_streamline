@@ -13,7 +13,7 @@
     'website': u"",
     'depends': [
         'base',
-        'account',
+        'account_streamline',
         'account_asset'
     ],
     'data': [
