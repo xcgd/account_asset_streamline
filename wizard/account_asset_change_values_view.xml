@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    
+        <record model="ir.ui.view" id="asset_modify_values_form">
+            <field name="name">wizard.asset.modify.values.form</field>
+            <field name="model">asset.modify.values</field>
+            <field name="arch" type="xml">
+                <form string="Modify Asset" version="7.0">
+                    <group string="Asset Value to Modify">
+                        <field name="name" />
+                        <field name="adjusted_value" />
+                        <field name="adjustment_amount" widget="monetary" options="{'currency_field': 'currency_id'}" />
+                    </group>
+                    <group string="Notes">
+                        <field name="note" nolabel="1" />
+                    </group>
+                    <footer>
+                        <button name="modify" string="Modify" type="object" class="oe_highlight"/>
+                        or
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+        
+        <record id="action_asset_modify_values" model="ir.actions.act_window">
+             <field name="name">Modify Asset Values</field>
+             <field name="res_model">asset.modify.values</field>
+             <field name="type">ir.actions.act_window</field>
+             <field name="view_type">form</field>
+             <field name="view_mode">tree,form</field>
+             <field name="view_id" ref="asset_modify_values_form"/>
+             <field name="target">new</field>
+       </record>
+    
+    </data>
+</openerp>

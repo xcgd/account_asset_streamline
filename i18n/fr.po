@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: OpenERP Server 7.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-03-18 14:52+0000\n"
-"PO-Revision-Date: 2014-03-18 16:01+0200\n"
+"PO-Revision-Date: 2014-03-21 09:44+0200\n"
 "Last-Translator: Jérémie Gavrel <jeremie.gavrel@xcg-consulting.fr>\n"
 "Language-Team: \n"
 "Language: fr\n"
@@ -18,9 +18,14 @@ msgstr ""
 "X-Generator: Virtaal 0.7.1\n"
 
 #. module: account_asset
+#: field:account.asset.asset,purchase_value:0
+msgid "Gross Value"
+msgstr "Valeur initiale"
+
+#. module: account_asset
 #: field:account.asset.asset,value_residual:0
 msgid "Residual Value"
-msgstr "Montant à amortir"
+msgstr "Valeur nette comptable"
 
 #. module: account_asset
 #: view:account.asset.asset:0

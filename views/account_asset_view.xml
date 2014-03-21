@@ -5,68 +5,130 @@
     <record model="ir.ui.view" id="view_account_asset_asset_form">
         <field name="name">account.asset.asset.form</field>
         <field name="model">account.asset.asset</field>
-    	<field name="inherit_id" ref="account_asset.view_account_asset_asset_form"/>
-    	<field name="arch" type="xml">
+        <field name="inherit_id" ref="account_asset.view_account_asset_asset_form"/>
+        <field name="arch" type="xml">
             <data>
-            	<xpath expr="//button[@name='set_to_draft']" position="after">
+                <xpath expr="//button[@name='set_to_draft']" position="after">
                     <button name="validate" states="close" string="Reactivate" type="object" groups="account.group_account_manager" />
                 </xpath>
-	            <xpath expr="//field[@name='method_period']" position="replace" />
-	            <xpath expr="//field[@name='method_number']" position="after">
-	                <field name="method_end_fct" attrs="{'invisible': [('method_time', '!=', 'number')]}"/>
-	            </xpath>
-	            <xpath expr="//field[@name='method_end']" position="after">
-	                <field name="method_number_fct" attrs="{'invisible': [('method_time', '!=', 'end')]}"/>
-	            </xpath>
-	            <xpath expr="//field[@name='purchase_date']" position="after">
-	                <field name="service_date" />
-	                <field name="quantity" />
-	            </xpath>
-	            <xpath expr="//button[@name='create_move']" position="replace" />
+                <xpath expr="//field[@name='code']" position="replace">
+                    <field name="description" />
+                </xpath>
+                <xpath expr="//field[@name='purchase_date']" position="replace">
+                    <field name="quantity" />
+                </xpath>
+                <xpath expr="//button[@name='create_move']" position="replace" />
                 <xpath expr="//field[@name='depreciation_line_ids']" position="attributes">
                     <attribute name="readonly">1</attribute>
                 </xpath>
-	            <xpath expr="//page[@string='General']" position="after">
-	                <page string="Informations">
-	                	<group>
-		                	<group string="Insurance">
-		                		<field name="insurance_type" />
-		                		<field name="insurance_contract_number" />
-		                		<field name="insurance_contract_amount" />
-		                		<field name="insurance_company_deductible" />
-		                		<field name="start_insurance_contract_date" />
-		                		<field name="end_insurance_contract_date" />
-		                		<field
-		                			name="insurance_partner_id"
-		                			domain="[('supplier', '=', 'True')]"
-		                			context="{'default_supplier': True}"
-		                		/>
-		                	</group>
-		                	<group string="Additional informations">
-		                		<field name="disposal_date" />
-		                		<field name="sales_value" />
-		                	</group>
-	                	</group>
-	                </page>
-	                <page string="Analytique">
-	                	<group>
-		                	<group string="Analytique de l'immobilisation">
+                <xpath expr="//page[@string='General']" position="replace">
+                    <page string="General">
+                        <group string="Values" col="6">
+                            <group colspan="2">
+                                <field name="purchase_value" widget="monetary" options="{'currency_field': 'currency_id'}" />
+                                <field name="additional_value" widget="monetary" options="{'currency_field': 'currency_id'}" />
+                                <field name="adjusted_gross_value" widget="monetary" options="{'currency_field': 'currency_id'}" />
+                            </group>
+                            <group colspan="2">
+                                <field name="salvage_value" widget="monetary" options="{'currency_field': 'currency_id'}" />
+                                <field name="salvage_adjust" widget="monetary" options="{'currency_field': 'currency_id'}"  />
+                                <field name="adjusted_salvage_value" widget="monetary" options="{'currency_field': 'currency_id'}" />
+                            </group>
+                            <group colspan="2">
+                                <field name="depreciation_initial" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="depreciation_auto" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="depreciation_manual" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="depreciation_total" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            </group>
+                            <group colspan="4">
+                                <field name="net_book_value" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            </group>
+                            <group colspan="2">
+                                <button name="%(action_asset_modify_values)d" states="open" string="Change Values"
+                                        type="action" icon="terp-stock_effects-object-colorize" class="oe_inline"/>
+                            </group>
+                        </group>
+                        <group col="4">
+                            <group string="Asset" colspan="2">
+                                <group>
+                                    <field name="purchase_date"/>
+                                    <field name="service_date"/>
+                                    <field name="last_depreciation_date"/>
+                                </group>
+                                <group states="suspended">
+                                    <field name="suspension_date"/>
+                                    <field name="suspension_reason"/>
+                                </group>
+                                <group states="close">
+                                    <field name="disposal_date"/>
+                                    <field name="disposal_reason"/>
+                                    <field name="disposal_value" widget="monetary" options="{'currency_field': 'currency_id'}"
+                                        attrs="{'invisible':[('disposal_reason', '!=', 'sold')]}"
+                                    />
+                                </group>
+                            </group>
+                            <group string="Method" colspan="2">
+                                <field name="method"/>
+                                <field name="method_progress_factor" attrs="{
+                                    'invisible':[('method','=','linear')],
+                                    'required':[('method','=','degressive')]
+                                }"/>
+                                <label for="method_time"/>
+                                <div>
+                                    <field name="method_time" on_change="onchange_method_time(method_time)" class="oe_inline"/>
+                                    <button name="%(account_asset.action_asset_modify)d" states="open" string="Change Duration"
+                                        type="action" icon="terp-stock_effects-object-colorize" class="oe_inline" colspan="1"/>
+                                </div>
+                                <field name="method_number" attrs="{'invisible':[('method_time','=','end')], 'required':[('method_time','=','number')]}"/>
+                                <field name="method_number_fct" attrs="{'invisible': [('method_time', '!=', 'end')]}"/>
+                                <field name="method_end" attrs="{'required': [('method_time','=','end')], 'invisible':[('method_time','=','number')]}"/>
+                                <field name="method_end_fct" attrs="{'invisible': [('method_time', '!=', 'number')]}"/>
+                            </group>
+                        </group>
+                    </page>
+                    <page string="Analytique">
+                        <group>
+                            <group string="Analytique de l'immobilisation">
                                 <field name="a1_id" />
                                 <field name="a2_id" />
                                 <field name="a3_id" />
                                 <field name="a4_id" />
                                 <field name="a5_id" />
-		                	</group>
-		                	<group string="Analytique de la transaction">
+                            </group>
+                            <group string="Analytique de la transaction">
                                 <field name="t1_id" />
                                 <field name="t2_id" />
                                 <field name="t3_id" />
                                 <field name="t4_id" />
                                 <field name="t5_id" />
-		                	</group>
-	                	</group>
-	                </page>
-	            </xpath>
+                            </group>
+                        </group>
+                    </page>
+                    <page string="Invoice">
+                        <group>
+                            <field name="invoice_date" />
+                            <field name="invoice_ref" />
+                            <field name="partner_id" />
+                            <field name="invoice_amount" widget="monetary" options="{'currency_field': 'currency_id'}" />
+                            <field name="invoice_comment" />
+                        </group>
+                    </page>
+                    <page string="Insurance">
+                        <group>
+                            <field name="insurance_type" />
+                            <field name="insurance_contract_number" />
+                            <field name="insurance_contract_amount" />
+                            <field name="insurance_company_deductible" />
+                            <field name="start_insurance_contract_date" />
+                            <field name="end_insurance_contract_date" />
+                            <field
+                                name="insurance_partner_id"
+                                domain="[('supplier', '=', 'True')]"
+                                context="{'default_supplier': True}"
+                            />
+                        </group>
+                    </page>
+                </xpath>
             </data>
         </field>
     </record>
@@ -74,12 +136,12 @@
     <record model="ir.ui.view" id="view_account_asset_category_form">
         <field name="name">account.asset.category.form</field>
         <field name="model">account.asset.category</field>
-    	<field name="inherit_id" ref="account_asset.view_account_asset_category_form"/>
-    	<field name="arch" type="xml">
+        <field name="inherit_id" ref="account_asset.view_account_asset_category_form"/>
+        <field name="arch" type="xml">
             <data>
-	            <xpath expr="//field[@name='method_period']" position="replace">
-	                <field name="method_period" invisible="1"/>
-	            </xpath>
+                <xpath expr="//field[@name='method_period']" position="replace">
+                    <field name="method_period" invisible="1"/>
+                </xpath>
             </data>
         </field>
     </record>
