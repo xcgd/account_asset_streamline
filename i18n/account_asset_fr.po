@@ -40,3 +40,18 @@ msgstr "Historique"
 #: field:account.asset.depreciation.line,depreciated_value:0
 msgid "Amount Already Depreciated"
 msgstr "Montant déjà amorti"
+
+#. module: account_asset_streamline
+#: selection:account.asset.asset,state:0
+msgid "Running"
+msgstr "Actif"
+
+#. module: account_asset_streamline
+#: selection:account.asset.asset,state:0
+msgid "Suspended"
+msgstr "Suspendu"
+
+#. module: account_asset_streamline
+#: selection:account.asset.asset,state:0
+msgid "Disposed"
+msgstr "Cédé"

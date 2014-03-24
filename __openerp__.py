@@ -17,6 +17,7 @@
         'account_asset'
     ],
     'data': [
+        'security/ir.model.access.csv',
         'wizard/account_asset_change_values_view.xml',
         'views/account_asset_view.xml',
         'wizard/account_asset_depreciation_wizard.xml',

@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OpenERP Server 7.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-03-24 13:19+0000\n"
-"PO-Revision-Date: 2014-03-24 14:19+0200\n"
+"POT-Creation-Date: 2014-03-24 15:07+0000\n"
+"PO-Revision-Date: 2014-03-24 16:07+0200\n"
 "Last-Translator: Jérémie Gavrel <jeremie.gavrel@xcg-consulting.fr>\n"
 "Language-Team: \n"
 "Language: fr\n"
@@ -18,102 +18,15 @@ msgstr ""
 "X-Generator: Virtaal 0.7.1\n"
 
 #. module: account_asset_streamline
-#: view:account.asset.asset:0
-msgid "Comments"
-msgstr "Commentaires"
-
-#. module: account_asset_streamline
-#: view:account.asset.asset:0
-#: field:account.asset.values.history,asset_id:0
-#: model:ir.model,name:account_asset_streamline.model_account_asset_asset
-msgid "Asset"
-msgstr "Immobilisation"
-
-#. module: account_asset_streamline
-#: field:account.asset.asset,insurance_contract_number:0
-msgid "Contract Number"
-msgstr "Numéro de contrat"
-
-#. module: account_asset_streamline
-#: field:account.asset.asset,adjusted_gross_value:0
-msgid "Adjusted Gross Value"
-msgstr "Valeur brute"
-
-#. module: account_asset_streamline
-#: view:asset.modify.values:0
-msgid "Modify"
-msgstr "Modifier"
-
-#. module: account_asset_streamline
-#: field:account.asset.values.history,name:0
-#: field:asset.modify.values,name:0
-msgid "Reason"
-msgstr "Motif"
-
-#. module: account_asset_streamline
-#: selection:account.asset.asset,disposal_reason:0
-msgid "Scrapped"
-msgstr "Mise au rebut"
-
-#. module: account_asset_streamline
-#: field:account.asset.depreciation.wizard,asset_ids:0
-msgid "Assets"
-msgstr "Immobilisations"
-
-#. module: account_asset_streamline
-#: view:account.asset.asset:0
-msgid "Change Values"
-msgstr "Modifier les valeurs"
+#: field:account.asset.asset,insurance_contract_amount:0
+msgid "Contract Amount"
+msgstr "Montant police d'assurance"
 
 #. module: account_asset_streamline
 #: view:account.asset.values.history:0
-#: view:asset.modify.values:0
-#: field:asset.modify.values,note:0
-msgid "Notes"
-msgstr "Commentaires"
-
-#. module: account_asset_streamline
-#: code:addons/account_asset_streamline/wizard/account_asset_change_values.py:46
-#, python-format
-msgid "Error!"
-msgstr "Erreur !"
-
-#. module: account_asset_streamline
-#: field:account.asset.asset,invoice_amount:0
-msgid "Amount"
-msgstr "Montant"
-
-#. module: account_asset_streamline
-#: field:account.asset.values.history,note:0
-msgid "Note"
-msgstr "Commentaires"
-
-#. module: account_asset_streamline
-#: field:account.asset.asset,invoice_ref:0
-msgid "Reference"
-msgstr "Référence"
-
-#. module: account_asset_streamline
-#: field:account.asset.values.history,new_value:0
-msgid "New amount"
-msgstr "Nouveau montant"
-
-#. module: account_asset_streamline
-#: field:account.asset.asset,depreciation_initial:0
-msgid "Initial Depreciation"
-msgstr "Amortissement initial"
-
-#. module: account_asset_streamline
-#: field:account.asset.asset,salvage_adjust:0
-#: selection:account.asset.values.history,adjusted_value:0
-#: selection:asset.modify.values,adjusted_value:0
-msgid "Salvage Value Adjustment"
-msgstr "Correction valeur résiduelle"
-
-#. module: account_asset_streamline
-#: field:asset.modify.values,adjustment_amount:0
-msgid "Adjustment"
-msgstr "Ajustement"
+#: model:ir.model,name:account_asset_streamline.model_account_asset_values_history
+msgid "Asset Values history"
+msgstr "Historique des modifications des éléments comptables"
 
 #. module: account_asset_streamline
 #: view:account.asset.asset:0
@@ -126,6 +39,11 @@ msgid "Contact Partner"
 msgstr "Contact"
 
 #. module: account_asset_streamline
+#: field:account.asset.asset,end_insurance_contract_date:0
+msgid "Contract End Date"
+msgstr "Date de fin de contrat"
+
+#. module: account_asset_streamline
 #: view:account.asset.asset:0
 msgid "Change Duration"
 msgstr "Modifier la durée"
@@ -136,10 +54,24 @@ msgid "Adjusted Salvage Value"
 msgstr "Valeur résiduelle"
 
 #. module: account_asset_streamline
-#: code:addons/account_asset_streamline/model/account_asset.py:176
-#, python-format
-msgid "Disposed"
-msgstr "Cédé"
+#: field:account.asset.asset,depreciation_total:0
+msgid "Total of Depreciations"
+msgstr "Amortissement cumulé"
+
+#. module: account_asset_streamline
+#: view:account.asset.asset:0
+msgid "Comments"
+msgstr "Commentaires"
+
+#. module: account_asset_streamline
+#: selection:account.asset.asset,disposal_reason:0
+msgid "Destroyed"
+msgstr "Destruction"
+
+#. module: account_asset_streamline
+#: model:ir.model,name:account_asset_streamline.model_account_asset_depreciation_wizard
+msgid "account.asset.depreciation.wizard"
+msgstr "account.asset.depreciation.wizard"
 
 #. module: account_asset_streamline
 #: field:account.asset.asset,depreciation_auto:0
@@ -148,113 +80,15 @@ msgstr "Amortissement automatique"
 
 #. module: account_asset_streamline
 #: view:account.asset.asset:0
+#: field:account.asset.values.history,asset_id:0
+#: model:ir.model,name:account_asset_streamline.model_account_asset_asset
+msgid "Asset"
+msgstr "Immobilisation"
+
+#. module: account_asset_streamline
+#: view:account.asset.asset:0
 msgid "Transaction Management"
 msgstr "Analytique de la transaction"
-
-#. module: account_asset_streamline
-#: field:account.asset.asset,insurance_type:0
-msgid "Type"
-msgstr "Type"
-
-#. module: account_asset_streamline
-#: view:account.asset.values.history:0
-msgid "Asset Values History"
-msgstr "Historique des modifications des éléments comptables"
-
-#. module: account_asset_streamline
-#: field:account.asset.asset,additional_value:0
-msgid "Additional Value"
-msgstr "Valeur additionnelle"
-
-#. module: account_asset_streamline
-#: field:account.asset.asset,disposal_reason:0
-msgid "Disposal Reason"
-msgstr "Raison de la sortie"
-
-#. module: account_asset_streamline
-#: view:asset.modify.values:0
-msgid "Cancel"
-msgstr "Annuler"
-
-#. module: account_asset_streamline
-#: field:account.asset.asset,values_history_ids:0
-msgid "Values History"
-msgstr "Historique des modifications des éléments comptables"
-
-#. module: account_asset_streamline
-#: field:account.asset.asset,start_insurance_contract_date:0
-msgid "Contract Start Date"
-msgstr "Date de début de contrat"
-
-#. module: account_asset_streamline
-#: field:account.asset.asset,depreciation_total:0
-msgid "Total of Depreciations"
-msgstr "Amortissement cumulé"
-
-#. module: account_asset_streamline
-#: field:account.asset.asset,invoice_comment:0
-msgid "Comment"
-msgstr "Commentaire"
-
-#. module: account_asset_streamline
-#: view:asset.modify.values:0
-#: model:ir.actions.act_window,name:account_asset_streamline.action_asset_modify_values
-#: model:ir.model,name:account_asset_streamline.model_asset_modify_values
-msgid "Modify Asset Values"
-msgstr "Modifier les valeurs de l'immobilisation"
-
-#. module: account_asset_streamline
-#: view:account.asset.depreciation.wizard:0
-msgid "Depreciation wizard"
-msgstr "Assistant Amortissements"
-
-#. module: account_asset_streamline
-#: code:addons/account_asset_streamline/model/account_asset.py:175
-#, python-format
-msgid "Suspended"
-msgstr "Suspendu"
-
-#. module: account_asset_streamline
-#: field:account.asset.asset,suspension_reason:0
-msgid "Suspension Reason"
-msgstr "Raison de la suspension"
-
-#. module: account_asset_streamline
-#: field:account.asset.asset,disposal_date:0
-msgid "Disposal Date"
-msgstr "Date de sortie"
-
-#. module: account_asset_streamline
-#: view:asset.modify.values:0
-msgid "or"
-msgstr "ou"
-
-#. module: account_asset_streamline
-#: model:ir.actions.act_window,name:account_asset_streamline.action_account_asset_depreciation_wizard
-#: model:ir.ui.menu,name:account_asset_streamline.menu_action_account_asset_depreciation_wizard
-msgid "Depreciate assets"
-msgstr "Amortir les immobilisations"
-
-#. module: account_asset_streamline
-#: field:account.asset.asset,insurance_contract_amount:0
-msgid "Contract Amount"
-msgstr "Montant police d'assurance"
-
-#. module: account_asset_streamline
-#: field:account.asset.asset,end_insurance_contract_date:0
-msgid "Contract End Date"
-msgstr "Date de fin de contrat"
-
-#. module: account_asset_streamline
-#: selection:account.asset.asset,disposal_reason:0
-msgid "Destroyed"
-msgstr "Destruction"
-
-#. module: account_asset_streamline
-#: code:addons/account_asset_streamline/model/account_asset.py:173
-#, python-format
-msgid "Draft"
-msgstr "Brouillon"
 
 #. module: account_asset_streamline
 #: field:account.asset.asset,suspension_date:0
@@ -263,8 +97,28 @@ msgstr "Date de la suspension"
 
 #. module: account_asset_streamline
 #: view:account.asset.asset:0
+msgid "General"
+msgstr "Général"
+
+#. module: account_asset_streamline
+#: field:account.asset.asset,insurance_type:0
+msgid "Type"
+msgstr "Type"
+
+#. module: account_asset_streamline
+#: view:account.asset.asset:0
 msgid "Method"
 msgstr "Méthode"
+
+#. module: account_asset_streamline
+#: field:account.asset.asset,insurance_contract_number:0
+msgid "Contract Number"
+msgstr "Numéro de contrat"
+
+#. module: account_asset_streamline
+#: field:account.asset.depreciation.wizard,asset_ids:0
+msgid "Assets"
+msgstr "Immobilisations"
 
 #. module: account_asset_streamline
 #: field:account.asset.asset,t5_id:0
@@ -272,14 +126,29 @@ msgid "Transaction Code 5"
 msgstr "Code Transaction 5"
 
 #. module: account_asset_streamline
-#: field:account.asset.asset,t4_id:0
-msgid "Transaction Code 4"
-msgstr "Code Transaction 4"
+#: field:account.asset.asset,t2_id:0
+msgid "Transaction Code 2"
+msgstr "Code Transaction 2"
 
 #. module: account_asset_streamline
-#: field:account.asset.asset,t1_id:0
-msgid "Transaction Code 1"
-msgstr "Code Transaction 1"
+#: view:account.asset.values.history:0
+msgid "Asset Values History"
+msgstr "Historique des modifications des éléments comptables"
+
+#. module: account_asset_streamline
+#: view:asset.modify.values:0
+msgid "or"
+msgstr "ou"
+
+#. module: account_asset_streamline
+#: field:account.asset.asset,additional_value:0
+msgid "Additional Value"
+msgstr "Valeur additionnelle"
+
+#. module: account_asset_streamline
+#: field:account.asset.asset,adjusted_gross_value:0
+msgid "Adjusted Gross Value"
+msgstr "Valeur brute"
 
 #. module: account_asset_streamline
 #: field:account.asset.asset,t3_id:0
@@ -287,9 +156,14 @@ msgid "Transaction Code 3"
 msgstr "Code Transaction 3"
 
 #. module: account_asset_streamline
-#: field:account.asset.asset,t2_id:0
-msgid "Transaction Code 2"
-msgstr "Code Transaction 2"
+#: view:account.asset.asset:0
+msgid "Insurance"
+msgstr "Assurance"
+
+#. module: account_asset_streamline
+#: field:account.asset.asset,disposal_reason:0
+msgid "Disposal Reason"
+msgstr "Raison de la sortie"
 
 #. module: account_asset_streamline
 #: view:account.asset.asset:0
@@ -308,6 +182,22 @@ msgid "Invalid value type."
 msgstr "Type de valeur invalide."
 
 #. module: account_asset_streamline
+#: view:asset.modify.values:0
+msgid "Modify"
+msgstr "Modifier"
+
+#. module: account_asset_streamline
+#: field:account.asset.asset,service_date:0
+msgid "Placed in Service Date"
+msgstr "Date de mise en service"
+
+#. module: account_asset_streamline
+#: field:account.asset.values.history,name:0
+#: field:asset.modify.values,name:0
+msgid "Reason"
+msgstr "Motif"
+
+#. module: account_asset_streamline
 #: field:account.asset.values.history,user_id:0
 msgid "User"
 msgstr "Utilisateur"
@@ -324,72 +214,9 @@ msgid "Calculated End Date"
 msgstr "Date de fin prévue"
 
 #. module: account_asset_streamline
-#: field:account.asset.asset,insurance_company_deductible:0
-msgid "Company Deductible Amount"
-msgstr "Montant de la franchise"
-
-#. module: account_asset_streamline
-#: selection:account.asset.values.history,adjusted_value:0
-#: selection:asset.modify.values,adjusted_value:0
-msgid "Manual Depreciation"
-msgstr "Amortissement manuel"
-
-#. module: account_asset_streamline
 #: field:account.asset.asset,quantity:0
 msgid "Quantity"
 msgstr "Quantité"
-
-#. module: account_asset_streamline
-#: view:account.asset.asset:0
-msgid "General"
-msgstr "Général"
-
-#. module: account_asset_streamline
-#: view:account.asset.asset:0
-msgid "Invoice"
-msgstr "Facture"
-
-#. module: account_asset_streamline
-#: view:account.asset.depreciation.wizard:0
-msgid "Depreciate selected assets"
-msgstr "Amortir les immobilisations"
-
-#. module: account_asset_streamline
-#: view:account.asset.asset:0
-msgid "Insurance"
-msgstr "Assurance"
-
-#. module: account_asset_streamline
-#: view:account.asset.values.history:0
-#: model:ir.model,name:account_asset_streamline.model_account_asset_values_history
-msgid "Asset Values history"
-msgstr "Historique des modifications des éléments comptables"
-
-#. module: account_asset_streamline
-#: view:account.asset.asset:0
-msgid "Reactivate"
-msgstr "Réactiver"
-
-#. module: account_asset_streamline
-#: model:ir.model,name:account_asset_streamline.model_account_asset_depreciation_wizard
-msgid "account.asset.depreciation.wizard"
-msgstr "account.asset.depreciation.wizard"
-
-#. module: account_asset_streamline
-#: field:account.asset.asset,description:0
-msgid "Description"
-msgstr "Description"
-
-#. module: account_asset_streamline
-#: field:account.asset.asset,service_date:0
-msgid "Placed in Service Date"
-msgstr "Date de mise en service"
-
-#. module: account_asset_streamline
-#: code:addons/account_asset_streamline/model/account_asset.py:174
-#, python-format
-msgid "Running"
-msgstr "Actif"
 
 #. module: account_asset_streamline
 #: field:account.asset.asset,disposal_value:0
@@ -413,6 +240,33 @@ msgid "Asset Value to Modify"
 msgstr "Valeur à ajuster"
 
 #. module: account_asset_streamline
+#: view:account.asset.asset:0
+msgid "Reactivate"
+msgstr "Réactiver"
+
+#. module: account_asset_streamline
+#: view:account.asset.asset:0
+msgid "Change Values"
+msgstr "Modifier les valeurs"
+
+#. module: account_asset_streamline
+#: field:account.asset.asset,values_history_ids:0
+msgid "Values History"
+msgstr "Historique des modifications des éléments comptables"
+
+#. module: account_asset_streamline
+#: view:account.asset.values.history:0
+#: view:asset.modify.values:0
+#: field:asset.modify.values,note:0
+msgid "Notes"
+msgstr "Commentaires"
+
+#. module: account_asset_streamline
+#: field:account.asset.asset,insurance_company_deductible:0
+msgid "Company Deductible Amount"
+msgstr "Montant de la franchise"
+
+#. module: account_asset_streamline
 #: selection:account.asset.values.history,adjusted_value:0
 #: selection:asset.modify.values,adjusted_value:0
 msgid "Gross Value Adjustment"
@@ -424,9 +278,38 @@ msgid "Values"
 msgstr "Valeurs"
 
 #. module: account_asset_streamline
+#: field:account.asset.asset,start_insurance_contract_date:0
+msgid "Contract Start Date"
+msgstr "Date de début de contrat"
+
+#. module: account_asset_streamline
+#: field:account.asset.asset,invoice_amount:0
+msgid "Amount"
+msgstr "Montant"
+
+#. module: account_asset_streamline
+#: view:asset.modify.values:0
+#: model:ir.actions.act_window,name:account_asset_streamline.action_asset_modify_values
+#: model:ir.model,name:account_asset_streamline.model_asset_modify_values
+msgid "Modify Asset Values"
+msgstr "Modifier les valeurs de l'immobilisation"
+
+#. module: account_asset_streamline
+#: field:account.asset.asset,suspension_reason:0
+msgid "Suspension Reason"
+msgstr "Raison de la suspension"
+
+#. module: account_asset_streamline
 #: model:ir.model,name:account_asset_streamline.model_account_asset_category
 msgid "Asset category"
 msgstr "Catégorie d'immobilisation"
+
+#. module: account_asset_streamline
+#: field:account.asset.asset,salvage_adjust:0
+#: selection:account.asset.values.history,adjusted_value:0
+#: selection:asset.modify.values,adjusted_value:0
+msgid "Salvage Value Adjustment"
+msgstr "Correction valeur résiduelle"
 
 #. module: account_asset_streamline
 #: field:account.asset.asset,net_book_value:0
@@ -439,14 +322,101 @@ msgid "Calculated Depreciations"
 msgstr "Amortissements automatiques"
 
 #. module: account_asset_streamline
+#: selection:account.asset.values.history,adjusted_value:0
+#: selection:asset.modify.values,adjusted_value:0
+msgid "Manual Depreciation"
+msgstr "Amortissement manuel"
+
+#. module: account_asset_streamline
 #: field:account.asset.asset,depreciation_manual:0
 msgid "Manual Depreciations"
 msgstr "Amortissement manuels"
 
 #. module: account_asset_streamline
+#: field:account.asset.asset,disposal_date:0
+msgid "Disposal Date"
+msgstr "Date de sortie"
+
+#. module: account_asset_streamline
+#: field:account.asset.asset,description:0
+msgid "Description"
+msgstr "Description"
+
+#. module: account_asset_streamline
+#: field:account.asset.asset,invoice_comment:0
+msgid "Comment"
+msgstr "Commentaire"
+
+#. module: account_asset_streamline
+#: field:account.asset.values.history,note:0
+msgid "Note"
+msgstr "Commentaires"
+
+#. module: account_asset_streamline
+#: field:asset.modify.values,adjustment_amount:0
+msgid "Adjustment"
+msgstr "Ajustement"
+
+#. module: account_asset_streamline
+#: field:account.asset.asset,invoice_ref:0
+msgid "Reference"
+msgstr "Référence"
+
+#. module: account_asset_streamline
+#: code:addons/account_asset_streamline/wizard/account_asset_change_values.py:46
+#, python-format
+msgid "Error!"
+msgstr "Erreur !"
+
+#. module: account_asset_streamline
+#: field:account.asset.values.history,new_value:0
+msgid "New amount"
+msgstr "Nouveau montant"
+
+#. module: account_asset_streamline
+#: field:account.asset.asset,depreciation_initial:0
+msgid "Initial Depreciation"
+msgstr "Amortissement initial"
+
+#. module: account_asset_streamline
+#: field:account.asset.asset,t4_id:0
+msgid "Transaction Code 4"
+msgstr "Code Transaction 4"
+
+#. module: account_asset_streamline
 #: view:account.asset.asset:0
 msgid "Suspend"
 msgstr "Suspendre"
+
+#. module: account_asset_streamline
+#: view:account.asset.depreciation.wizard:0
+msgid "Depreciation wizard"
+msgstr "Assistant Amortissements"
+
+#. module: account_asset_streamline
+#: field:account.asset.asset,t1_id:0
+msgid "Transaction Code 1"
+msgstr "Code Transaction 1"
+
+#. module: account_asset_streamline
+#: view:account.asset.depreciation.wizard:0
+msgid "Depreciate selected assets"
+msgstr "Amortir les immobilisations"
+
+#. module: account_asset_streamline
+#: selection:account.asset.asset,disposal_reason:0
+msgid "Scrapped"
+msgstr "Mise au rebut"
+
+#. module: account_asset_streamline
+#: view:account.asset.asset:0
+msgid "Invoice"
+msgstr "Facture"
+
+#. module: account_asset_streamline
+#: view:asset.modify.values:0
+msgid "Cancel"
+msgstr "Annuler"
 
 #. module: account_asset_streamline
 #: field:account.asset.asset,last_depreciation_period:0
@@ -472,6 +442,12 @@ msgstr "Code Analyse 2"
 #: field:account.asset.asset,a3_id:0
 msgid "Analysis Code 3"
 msgstr "Code Analyse 3"
+
+#. module: account_asset_streamline
+#: model:ir.actions.act_window,name:account_asset_streamline.action_account_asset_depreciation_wizard
+#: model:ir.ui.menu,name:account_asset_streamline.menu_action_account_asset_depreciation_wizard
+msgid "Depreciate assets"
+msgstr "Amortir les immobilisations"
 
 #. module: account_asset_streamline
 #: field:account.asset.asset,a1_id:0
@@ -503,3 +479,18 @@ msgstr "Historique"
 #: field:account.asset.depreciation.line,depreciated_value:0
 msgid "Amount Already Depreciated"
 msgstr "Montant déjà amorti"
+
+#. module: account_asset_streamline
+#: selection:account.asset.asset,state:0
+msgid "Running"
+msgstr "Actif"
+
+#. module: account_asset_streamline
+#: selection:account.asset.asset,state:0
+msgid "Suspended"
+msgstr "Suspendu"
+
+#. module: account_asset_streamline
+#: selection:account.asset.asset,state:0
+msgid "Disposed"
+msgstr "Cédé"

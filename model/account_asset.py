@@ -166,16 +166,18 @@ class account_asset_asset_streamline(osv.Model):
         'depreciation_manual'
     ]
 
+    _states = [
+        ('draft', u"Draft"),
+        ('open', u"Running"),
+        ('suspended', u"Suspended"),
+        ('close', u"Disposed"),
+    ]
+
     _columns = {
 
         'state': fields.selection(
-            [
-                ('draft', _(u"Draft")),
-                ('open', _(u"Running")),
-                ('suspended', _(u"Suspended")),
-                ('close', _(u"Disposed")),
-            ],
-            'Status',
+            _states,
+            u"Status",
             required=True,
             help="When an asset is created, the status is 'Draft'.\n" \
                 "If the asset is confirmed, the status goes in 'Running' and "\

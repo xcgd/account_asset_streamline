@@ -139,6 +139,28 @@
         </field>
     </record>
 
+    <record model="ir.ui.view" id="view_account_asset_asset_tree">
+        <field name="name">account.asset.asset.tree</field>
+        <field name="model">account.asset.asset</field>
+        <field name="inherit_id" ref="account_asset.view_account_asset_asset_tree"/>
+        <field name="field_parent">child_ids</field>
+        <field name="arch" type="xml">
+            <xpath expr="//tree[@string='Assets']" position="replace">
+                <tree string="Assets" colors="blue:(state == 'draft');darkred:(state == 'close');grey:(state == 'suspended')">
+                    <field name="name" />
+                    <field name="description" />
+                    <field name="category_id" />
+                    <field name="state" />
+                    <field name="last_depreciation_period" />
+                    <field name="adjusted_gross_value" />
+                    <field name="depreciation_total" />
+                    <field name="adjusted_salvage_value" />
+                    <field name="net_book_value" />
+                </tree>
+            </xpath>
+        </field>
+    </record>
+
     <record model="ir.ui.view" id="view_account_asset_category_form">
         <field name="name">account.asset.category.form</field>
         <field name="model">account.asset.category</field>
@@ -156,13 +178,13 @@
         <field name="name">account.asset.values.history.tree</field>
         <field name="model">account.asset.values.history</field>
         <field name="arch" type="xml">
-            <tree string="Asset Values history">
+            <xpath expr="//button[@name='set_to_draft']" position="after">
                <field name="date"/>
                <field name="name"/>
                <field name="user_id"/>
                <field name="adjusted_value"/>
                <field name="new_value"/>
-           </tree>
+           </xpath>
         </field>
     </record>
 
