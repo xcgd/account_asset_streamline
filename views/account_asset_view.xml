@@ -120,8 +120,8 @@
                         <group>
                             <field name="insurance_type" />
                             <field name="insurance_contract_number" />
-                            <field name="insurance_contract_amount" />
-                            <field name="insurance_company_deductible" />
+                            <field name="insurance_contract_amount" widget="monetary" options="{'currency_field': 'currency_id'}" />
+                            <field name="insurance_company_deductible" widget="monetary" options="{'currency_field': 'currency_id'}" />
                             <field name="start_insurance_contract_date" />
                             <field name="end_insurance_contract_date" />
                             <field
