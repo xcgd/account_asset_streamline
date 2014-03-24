@@ -17,8 +17,8 @@ class account_asset_depreciation_wizard(osv.TransientModel):
             ('state', '=', 'open'),
             ('service_date', '<=', period_stop),
             '|',
-                ('last_depreciation_date', '<', period_start),
-                ('last_depreciation_date', '=', False),
+                ('last_depreciation_period', '!=', period_id),
+                ('last_depreciation_period', '=', False),
             '|',
                 '&',
                     ('method_time', '=', 'end'),
@@ -59,5 +59,5 @@ class account_asset_depreciation_wizard(osv.TransientModel):
         unchecked_asset_ids = set(asset_read[0]['asset_ids'])
         valid_asset_ids = set(self._get_asset_ids(cr, uid, context))
         asset_ids = list(unchecked_asset_ids & valid_asset_ids)
-        period_id = self._get_period(cr, uid, context=context)
+        period_id = asset_osv._get_period(cr, uid, context=context)
         asset_osv.depreciate(cr, uid, asset_ids, period_id, context=context)

@@ -4,6 +4,7 @@ from openerp.osv import fields, osv
 import time
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
+from tools.translate import _
 
 
 class account_asset_category_streamline(osv.Model):
@@ -153,7 +154,6 @@ class account_asset_asset_streamline(osv.Model):
             nb_months += (end_date.year - srv_date.year) * 12
             nb_days = end_date.month - srv_date.month
             nb_days += nb_months * 30
-            print nb_days
             daily_depreciation = value_residual / nb_days
 
         return daily_depreciation
@@ -170,10 +170,10 @@ class account_asset_asset_streamline(osv.Model):
 
         'state': fields.selection(
             [
-                ('draft', 'Draft'),
-                ('open', 'Running'),
-                ('suspended', 'Suspended'),
-                ('close', 'Disposed'),
+                ('draft', _(u"Draft")),
+                ('open', _(u"Running")),
+                ('suspended', _(u"Suspended")),
+                ('close', _(u"Disposed")),
             ],
             'Status',
             required=True,
@@ -317,8 +317,9 @@ class account_asset_asset_streamline(osv.Model):
                 'close': [('readonly', False)]
             },
         ),
-        'last_depreciation_date': fields.date(
-            u'Last Depreciation Date',
+        'last_depreciation_period': fields.many2one(
+            "account.period",
+            u'Last Depreciation Period',
             readonly=True,
         ),
         'method_end_fct': fields.function(
@@ -489,6 +490,12 @@ class account_asset_asset_streamline(osv.Model):
             ],
             track_visibility='onchange',
         ),
+        'values_history_ids': fields.one2many(
+            'account.asset.values.history',
+            'asset_id',
+            'Values History',
+            readonly=True
+        ),
     }
 
     _defaults = {
@@ -498,7 +505,17 @@ class account_asset_asset_streamline(osv.Model):
 
     def set_to_close(self, cr, uid, ids, context=None):
         vals = {'state': 'close', 'disposal_date': time.strftime('%Y-%m-%d')}
-        print vals
+        return self.write(cr, uid, ids, vals, context=context)
+
+    def suspend(self, cr, uid, ids, context=None):
+        vals = {
+            'state': 'suspended',
+            'suspension_date': time.strftime('%Y-%m-%d')
+        }
+        return self.write(cr, uid, ids, vals, context=context)
+
+    def reactivate(self, cr, uid, ids, context=None):
+        vals = {'state': 'open'}
         return self.write(cr, uid, ids, vals, context=context)
 
     def fields_get(
@@ -574,11 +591,41 @@ class account_asset_asset_streamline(osv.Model):
                 context=context
             )
 
-        vals = {'last_depreciation_date': time.strftime('%Y-%m-%d')}
+        vals = {'last_depreciation_period': period_id}
         self.write(cr, uid, ids, vals, context=context)
 
     # TODO Implementation
     def depreciate_move(self, cr, uid, ids, depreciation_value, context=None):
         pass
+
+
+class account_asset_values_history(osv.Model):
+    _name = 'account.asset.values.history'
+    _description = 'Asset Values history'
+    _columns = {
+        'name': fields.char('Reason', size=64, select=1),
+        'user_id': fields.many2one('res.users', 'User', required=True),
+        'date': fields.date('Date', required=True),
+        'asset_id': fields.many2one(
+            'account.asset.asset',
+            'Asset',
+            required=True
+        ),
+        'adjusted_value': fields.selection(
+            [
+                ('additional_value', u"Gross Value Adjustment"),
+                ('salvage_adjust', u"Salvage Value Adjustment"),
+                ('depreciation_manual', u"Manual Depreciation"),
+            ],
+            'Adjusted Value',
+        ),
+        'new_value': fields.float('New amount'),
+        'note': fields.text('Note'),
+    }
+    _order = 'date desc'
+    _defaults = {
+        'date': lambda *args: time.strftime('%Y-%m-%d'),
+        'user_id': lambda self, cr, uid, ctx: uid
+    }
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

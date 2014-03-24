@@ -2,6 +2,7 @@
 
 import time
 from openerp.osv import fields, osv
+from tools.translate import _
 
 
 class asset_modify_values(osv.TransientModel):
@@ -30,6 +31,7 @@ class asset_modify_values(osv.TransientModel):
         asset_val = {}
 
         asset_obj = self.pool.get('account.asset.asset')
+        history_obj = self.pool.get('account.asset.values.history')
         asset_id = context.get('active_id', False)
         asset = asset_obj.browse(cr, uid, asset_id, context=context)
         data = self.browse(cr, uid, ids[0], context=context)
@@ -39,10 +41,21 @@ class asset_modify_values(osv.TransientModel):
             old_value = getattr(asset, adjusted_value)
             new_value = old_value + data.adjustment_amount
             asset_val[adjusted_value] = new_value
-        except NameError:
-            pass
+            asset_obj.write(cr, uid, [asset_id], asset_val, context=context)
+        except AttributeError:
+            raise osv.except_osv(_('Error!'), _('Invalid value type.'))
 
-        asset_obj.write(cr, uid, [asset_id], asset_val, context=context)
+        history_vals = {
+            'asset_id': asset_id,
+            'name': data.name,
+            'adjusted_value': data.adjusted_value,
+            'new_value': new_value,
+            'user_id': uid,
+            'date': time.strftime('%Y-%m-%d'),
+            'note': data.note,
+        }
+        history_obj.create(cr, uid, history_vals, context=context)
+
         return {'type': 'ir.actions.act_window_close'}
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

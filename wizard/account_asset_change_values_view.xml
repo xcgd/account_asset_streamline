@@ -6,7 +6,7 @@
             <field name="name">wizard.asset.modify.values.form</field>
             <field name="model">asset.modify.values</field>
             <field name="arch" type="xml">
-                <form string="Modify Asset" version="7.0">
+                <form string="Modify Asset Values" version="7.0">
                     <group string="Asset Value to Modify">
                         <field name="name" />
                         <field name="adjusted_value" />
@@ -33,6 +33,6 @@
              <field name="view_id" ref="asset_modify_values_form"/>
              <field name="target">new</field>
        </record>
-    
+
     </data>
 </openerp>
