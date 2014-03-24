@@ -20,6 +20,11 @@ class asset_modify_values(osv.TransientModel):
             ],
             'Adjusted Value'
         ),
+        'currency_id': fields.many2one(
+            'res.currency',
+            'Currency',
+            readonly=True,
+        ),
         'adjustment_amount': fields.float('Adjustment'),
         'note': fields.text('Notes'),
     }

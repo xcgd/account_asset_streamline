@@ -1,2 +1,4 @@
 import account_asset_depreciation_wizard
 import account_asset_change_values
+import account_asset_close
+import account_asset_suspend

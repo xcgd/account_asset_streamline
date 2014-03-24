@@ -18,10 +18,12 @@
     ],
     'data': [
         'security/ir.model.access.csv',
+        'wizard/account_asset_close_view.xml',
+        'wizard/account_asset_suspend_view.xml',
         'wizard/account_asset_change_values_view.xml',
-        'views/account_asset_view.xml',
         'wizard/account_asset_depreciation_wizard.xml',
         'wizard/account_asset_change_duration_view.xml',
+        'views/account_asset_view.xml',
     ],
     'demo': [
         'demo/account_asset_demo.xml'

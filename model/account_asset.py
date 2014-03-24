@@ -289,9 +289,6 @@ class account_asset_asset_streamline(osv.Model):
             u'Suspension Reason',
             size=256,
             readonly=True,
-            states={
-                'draft': [('readonly', False)]
-            },
         ),
         'disposal_date': fields.date(
             u'Disposal Date',
@@ -308,16 +305,10 @@ class account_asset_asset_streamline(osv.Model):
             size=256,
             translate=True,
             readonly=True,
-            states={
-                'close': [('readonly', False)]
-            },
         ),
         'disposal_value': fields.integer(
             u'Disposal Value',
             readonly=True,
-            states={
-                'close': [('readonly', False)]
-            },
         ),
         'last_depreciation_period': fields.many2one(
             "account.period",

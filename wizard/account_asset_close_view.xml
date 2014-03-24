@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    
+        <record model="ir.ui.view" id="asset_close_form">
+            <field name="name">wizard.asset.close.form</field>
+            <field name="model">asset.close</field>
+            <field name="arch" type="xml">
+                <form string="Close Asset" version="7.0">
+                    <group>
+                        <field name="disposal_reason" />
+                        <field name="currency_id" invisible="1" />
+                        <field name="disposal_value" widget="monetary" options="{'currency_field': 'currency_id'}"
+                            attrs="{'invisible':[('disposal_reason', '!=', 'sold')]}" />
+                    </group>
+                    <footer>
+                        <button name="modify" string="Modify" type="object" class="oe_highlight"/>
+                        or
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+        
+        <record id="action_asset_close" model="ir.actions.act_window">
+             <field name="name">Close Asset</field>
+             <field name="res_model">asset.close</field>
+             <field name="type">ir.actions.act_window</field>
+             <field name="view_type">form</field>
+             <field name="view_mode">tree,form</field>
+             <field name="view_id" ref="asset_close_form"/>
+             <field name="target">new</field>
+       </record>
+
+    </data>
+</openerp>

@@ -8,9 +8,13 @@
         <field name="inherit_id" ref="account_asset.view_account_asset_asset_form"/>
         <field name="arch" type="xml">
             <data>
-                <xpath expr="//button[@name='set_to_draft']" position="after">
-                    <button name="suspend" states="open" string="Suspend" type="object" groups="account.group_account_manager" />
-                    <button name="reactivate" states="suspended,close" string="Reactivate" type="object" groups="account.group_account_manager" />
+                <xpath expr="//button[@name='set_to_close']" position="replace">
+                    <button name="%(action_asset_close)d" states="open" string="Set to Close" groups="account.group_account_manager"
+                        type="action" class="oe_highlight" context="{'default_currency_id': currency_id}" />
+                    <button name="reactivate" states="suspended,close" string="Reactivate" type="object"
+                        groups="account.group_account_manager" class="oe_highlight" />
+                    <button name="%(action_asset_suspend)d" states="open" string="Suspend" groups="account.group_account_manager"
+                        type="action" />
                 </xpath>
                 <xpath expr="//field[@name='code']" position="replace">
                     <field name="description" />
@@ -45,8 +49,8 @@
                                 <field name="net_book_value" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                             </group>
                             <group colspan="2">
-                                <button name="%(action_asset_modify_values)d" states="open" string="Change Values"
-                                        type="action" icon="terp-stock_effects-object-colorize" class="oe_inline"/>
+                                <button name="%(action_asset_modify_values)d" states="open" string="Change Values" type="action"
+                                    icon="terp-stock_effects-object-colorize" class="oe_inline" context="{'default_currency_id': currency_id}" />
                             </group>
                         </group>
                         <group col="4">

@@ -9,6 +9,7 @@
                 <form string="Modify Asset Values" version="7.0">
                     <group string="Asset Value to Modify">
                         <field name="name" />
+                        <field name="currency_id" invisible="1" />
                         <field name="adjusted_value" />
                         <field name="adjustment_amount" widget="monetary" options="{'currency_field': 'currency_id'}" />
                     </group>
