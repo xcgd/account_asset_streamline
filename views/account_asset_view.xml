@@ -182,13 +182,13 @@
         <field name="name">account.asset.values.history.tree</field>
         <field name="model">account.asset.values.history</field>
         <field name="arch" type="xml">
-            <xpath expr="//button[@name='set_to_draft']" position="after">
-               <field name="date"/>
-               <field name="name"/>
-               <field name="user_id"/>
-               <field name="adjusted_value"/>
-               <field name="new_value"/>
-           </xpath>
+            <tree string="Asset Values history">
+                <field name="date"/>
+                <field name="name"/>
+                <field name="user_id"/>
+                <field name="adjusted_value"/>
+                <field name="new_value"/>
+            </tree>
         </field>
     </record>
 
