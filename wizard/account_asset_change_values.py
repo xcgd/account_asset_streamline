@@ -3,6 +3,7 @@
 import time
 from openerp.osv import fields, osv
 from tools.translate import _
+import openerp.addons.decimal_precision as dp
 
 
 class asset_modify_values(osv.TransientModel):
@@ -25,7 +26,10 @@ class asset_modify_values(osv.TransientModel):
             'Currency',
             readonly=True,
         ),
-        'adjustment_amount': fields.float('Adjustment'),
+        'adjustment_amount': fields.float(
+            'Adjustment',
+            digits_compute=dp.get_precision('Account'),
+        ),
         'note': fields.text('Notes'),
     }
 

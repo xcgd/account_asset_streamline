@@ -5,6 +5,7 @@ import time
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
 from tools.translate import _
+import openerp.addons.decimal_precision as dp
 
 
 class account_asset_category_streamline(osv.Model):
@@ -192,13 +193,15 @@ class account_asset_asset_streamline(osv.Model):
         ),
         'additional_value': fields.float(
             'Additional Value',
-            readonly=True
+            readonly=True,
+            digits_compute=dp.get_precision('Account'),
         ),
         'adjusted_gross_value': fields.function(
             lambda s, *a: s._sum(s._gross_cols, *a),
             type='float',
             string=u'Adjusted Gross Value',
             readonly=True,
+            digits_compute=dp.get_precision('Account'),
             store={
                 'account.asset.asset': (
                     lambda self, cr, uid, ids, c={}: ids,
@@ -209,13 +212,15 @@ class account_asset_asset_streamline(osv.Model):
         ),
         'salvage_adjust': fields.float(
             'Salvage Value Adjustment',
-            readonly=True
+            readonly=True,
+            digits_compute=dp.get_precision('Account'),
         ),
         'adjusted_salvage_value': fields.function(
             lambda s, *a: s._sum(s._salvage_cols, *a),
             type='float',
             string=u'Adjusted Salvage Value',
             readonly=True,
+            digits_compute=dp.get_precision('Account'),
             store={
                 'account.asset.asset': (
                     lambda self, cr, uid, ids, c={}: ids,
@@ -227,6 +232,7 @@ class account_asset_asset_streamline(osv.Model):
         'depreciation_initial': fields.float(
             'Initial Depreciation',
             readonly=True,
+            digits_compute=dp.get_precision('Account'),
             states={
                 'draft': [('readonly', False)]
             },
@@ -235,6 +241,7 @@ class account_asset_asset_streamline(osv.Model):
         'depreciation_auto': fields.float(
             'Automatic Depreciations',
             readonly=True,
+            digits_compute=dp.get_precision('Account'),
             states={
                 'draft': [('readonly', False)]
             },
@@ -242,12 +249,14 @@ class account_asset_asset_streamline(osv.Model):
         'depreciation_manual': fields.float(
             'Manual Depreciations',
             readonly=True,
+            digits_compute=dp.get_precision('Account'),
         ),
         'depreciation_total': fields.function(
             lambda s, *a: s._sum(s._depreciation_cols, *a),
             type='float',
             string=u'Total of Depreciations',
             readonly=True,
+            digits_compute=dp.get_precision('Account'),
             store={
                 'account.asset.asset': (
                     lambda self, cr, uid, ids, c={}: ids,
@@ -261,6 +270,7 @@ class account_asset_asset_streamline(osv.Model):
             type='float',
             string=u'Net Book Value',
             readonly=True,
+            digits_compute=dp.get_precision('Account'),
             store={
                 'account.asset.asset': (
                     lambda self, cr, uid, ids, c={}: ids,
@@ -320,6 +330,7 @@ class account_asset_asset_streamline(osv.Model):
             type='date',
             string=u'Calculated End Date',
             readonly=True,
+            digits_compute=dp.get_precision('Account'),
             store={
                 'account.asset.asset': (
                     lambda self, cr, uid, ids, c={}: ids,
@@ -333,6 +344,7 @@ class account_asset_asset_streamline(osv.Model):
             type='integer',
             string=u'Calculated Depreciations',
             readonly=True,
+            digits_compute=dp.get_precision('Account'),
             store={
                 'account.asset.asset': (
                     lambda self, cr, uid, ids, c={}: ids,
@@ -358,6 +370,7 @@ class account_asset_asset_streamline(osv.Model):
         ),
         'invoice_amount': fields.float(
             u'Amount',
+            digits_compute=dp.get_precision('Account'),
             states={
                 'draft': [('readonly', False)]
             },
@@ -612,7 +625,9 @@ class account_asset_values_history(osv.Model):
             ],
             'Adjusted Value',
         ),
-        'new_value': fields.float('New amount'),
+        'new_value': fields.float(
+            'New amount',
+        ),
         'note': fields.text('Note'),
     }
     _order = 'date desc'

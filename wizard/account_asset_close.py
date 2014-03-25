@@ -2,6 +2,7 @@
 
 import time
 from openerp.osv import fields, osv
+import openerp.addons.decimal_precision as dp
 
 
 class asset_close(osv.TransientModel):
@@ -25,6 +26,7 @@ class asset_close(osv.TransientModel):
         'disposal_value': fields.integer(
             u'Disposal Value',
             required=True,
+            digits_compute=dp.get_precision('Account'),
         ),
         'currency_id': fields.many2one(
             'res.currency',
