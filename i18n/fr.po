@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OpenERP Server 7.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-03-24 16:57+0000\n"
-"PO-Revision-Date: 2014-03-24 17:57+0200\n"
+"POT-Creation-Date: 2014-03-25 14:57+0000\n"
+"PO-Revision-Date: 2014-03-25 15:58+0200\n"
 "Last-Translator: Jérémie Gavrel <jeremie.gavrel@xcg-consulting.fr>\n"
 "Language-Team: \n"
 "Language: fr\n"
@@ -25,12 +25,13 @@ msgid "Suspend Asset"
 msgstr "Suspension de l'immobilisation"
 
 #. module: account_asset_streamline
-#: view:account.asset.asset:0
+#: view:account.asset.invoice:0
 msgid "Comments"
 msgstr "Commentaires"
 
 #. module: account_asset_streamline
 #: view:account.asset.asset:0
+#: field:account.asset.invoice,asset_id:0
 #: field:account.asset.values.history,asset_id:0
 #: model:ir.model,name:account_asset_streamline.model_account_asset_asset
 msgid "Asset"
@@ -84,13 +85,13 @@ msgid "Notes"
 msgstr "Commentaires"
 
 #. module: account_asset_streamline
-#: code:addons/account_asset_streamline/wizard/account_asset_change_values.py:51
+#: code:addons/account_asset_streamline/wizard/account_asset_change_values.py:55
 #, python-format
 msgid "Error!"
 msgstr "Erreur !"
 
 #. module: account_asset_streamline
-#: field:account.asset.asset,invoice_amount:0
+#: field:account.asset.invoice,amount:0
 msgid "Amount"
 msgstr "Montant"
 
@@ -100,7 +101,7 @@ msgid "Note"
 msgstr "Commentaires"
 
 #. module: account_asset_streamline
-#: field:account.asset.asset,invoice_ref:0
+#: field:account.asset.invoice,ref:0
 msgid "Reference"
 msgstr "Référence"
 
@@ -140,6 +141,7 @@ msgstr "Analytique"
 
 #. module: account_asset_streamline
 #: field:account.asset.asset,insurance_partner_id:0
+#: field:account.asset.invoice,partner_id:0
 msgid "Contact Partner"
 msgstr "Contact"
 
@@ -167,6 +169,11 @@ msgstr "Analytique de la transaction"
 #: field:account.asset.asset,insurance_type:0
 msgid "Type"
 msgstr "Type"
+
+#. module: account_asset_streamline
+#: field:account.asset.depreciation.line,depreciation_period:0
+msgid "Depreciation Period"
+msgstr "Période d'amortissement"
 
 #. module: account_asset_streamline
 #: view:account.asset.values.history:0
@@ -197,6 +204,11 @@ msgid "Values History"
 msgstr "Historique des modifications des éléments comptables"
 
 #. module: account_asset_streamline
+#: model:ir.model,name:account_asset_streamline.model_account_asset_invoice
+msgid "account.asset.invoice"
+msgstr "account.asset.invoice"
+
+#. module: account_asset_streamline
 #: model:account.asset.asset,disposal_reason:account_asset_streamline.account_asset_asset_cab0
 #: model:account.asset.asset,disposal_reason:account_asset_streamline.account_asset_asset_office0
 msgid "sold"
@@ -213,7 +225,7 @@ msgid "Adjusted Gross Value"
 msgstr "Valeur brute"
 
 #. module: account_asset_streamline
-#: field:account.asset.asset,invoice_comment:0
+#: field:account.asset.invoice,comment:0
 msgid "Comment"
 msgstr "Commentaire"
 
@@ -225,21 +237,27 @@ msgid "Modify Asset Values"
 msgstr "Modifier les valeurs de l'immobilisation"
 
 #. module: account_asset_streamline
+#: field:account.asset.asset,invoice_ids:0
+#: view:account.asset.invoice:0
+msgid "Invoices"
+msgstr "Factures"
+
+#. module: account_asset_streamline
 #: view:account.asset.depreciation.wizard:0
 msgid "Depreciation wizard"
 msgstr "Assistant Amortissements"
 
 #. module: account_asset_streamline
+#: field:account.asset.invoice,currency_id:0
 #: field:asset.close,currency_id:0
 #: field:asset.modify.values,currency_id:0
 msgid "Currency"
 msgstr "Devise"
 
 #. module: account_asset_streamline
-#: field:account.asset.asset,suspension_reason:0
-#: field:asset.suspend,suspension_reason:0
-msgid "Suspension Reason"
-msgstr "Raison de la suspension"
+#: model:ir.model,name:account_asset_streamline.model_account_asset_depreciation_line
+msgid "Asset depreciation line"
+msgstr "Ligne d'amortissement"
 
 #. module: account_asset_streamline
 #: field:account.asset.asset,disposal_date:0
@@ -268,6 +286,11 @@ msgstr "Montant police d'assurance"
 #: field:account.asset.asset,end_insurance_contract_date:0
 msgid "Contract End Date"
 msgstr "Date de fin de contrat"
+
+#. module: account_asset_streamline
+#: view:account.asset.asset:0
+msgid "Values"
+msgstr "Valeurs"
 
 #. module: account_asset_streamline
 #: selection:account.asset.asset,disposal_reason:0
@@ -322,7 +345,7 @@ msgid "Sold"
 msgstr "Vente"
 
 #. module: account_asset_streamline
-#: code:addons/account_asset_streamline/wizard/account_asset_change_values.py:51
+#: code:addons/account_asset_streamline/wizard/account_asset_change_values.py:55
 #, python-format
 msgid "Invalid value type."
 msgstr "Type de valeur invalide."
@@ -333,7 +356,7 @@ msgid "User"
 msgstr "Utilisateur"
 
 #. module: account_asset_streamline
-#: field:account.asset.asset,invoice_date:0
+#: field:account.asset.invoice,date:0
 #: field:account.asset.values.history,date:0
 msgid "Date"
 msgstr "Date"
@@ -366,6 +389,7 @@ msgstr "Général"
 
 #. module: account_asset_streamline
 #: view:account.asset.asset:0
+#: view:account.asset.invoice:0
 msgid "Invoice"
 msgstr "Facture"
 
@@ -385,6 +409,7 @@ msgid "Insurance"
 msgstr "Assurance"
 
 #. module: account_asset_streamline
+#: view:account.asset.values.history:0
 #: model:ir.model,name:account_asset_streamline.model_account_asset_values_history
 msgid "Asset Values history"
 msgstr "Historique des modifications des éléments comptables"
@@ -439,9 +464,10 @@ msgid "Gross Value Adjustment"
 msgstr "Correction valeur brute"
 
 #. module: account_asset_streamline
-#: view:account.asset.asset:0
-msgid "Values"
-msgstr "Valeurs"
+#: field:account.asset.asset,suspension_reason:0
+#: field:asset.suspend,suspension_reason:0
+msgid "Suspension Reason"
+msgstr "Raison de la suspension"
 
 #. module: account_asset_streamline
 #: model:ir.model,name:account_asset_streamline.model_account_asset_category

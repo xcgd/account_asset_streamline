@@ -353,34 +353,10 @@ class account_asset_asset_streamline(osv.Model):
                 ),
             },
         ),
-        'invoice_date': fields.date(
-            u'Date',
-            readonly=True,
-            states={
-                'draft': [('readonly', False)]
-            },
-        ),
-        'invoice_ref': fields.char(
-            u'Reference',
-            size=256,
-            readonly=True,
-            states={
-                'draft': [('readonly', False)]
-            },
-        ),
-        'invoice_amount': fields.float(
-            u'Amount',
-            digits_compute=dp.get_precision('Account'),
-            states={
-                'draft': [('readonly', False)]
-            },
-        ),
-        'invoice_comment': fields.text(
-            u'Comment',
-            readonly=True,
-            states={
-                'draft': [('readonly', False)]
-            },
+        'invoice_ids': fields.one2many(
+            'account.asset.invoice',
+            'asset_id',
+            u"Invoices"
         ),
         'insurance_type': fields.char(
             u'Type',
@@ -634,6 +610,55 @@ class account_asset_values_history(osv.Model):
     _defaults = {
         'date': lambda *args: time.strftime('%Y-%m-%d'),
         'user_id': lambda self, cr, uid, ctx: uid
+    }
+
+
+class account_asset_depreciation_line(osv.Model):
+    _name = 'account.asset.depreciation.line'
+    _inherit = 'account.asset.depreciation.line'
+    _columns = {
+        'depreciation_period': fields.many2one(
+            "account.period",
+            u'Depreciation Period',
+            readonly=True,
+        ),
+    }
+
+
+class account_asset_invoice(osv.Model):
+
+    _name = 'account.asset.invoice'
+    _description = "Invoice"
+
+    _columns = {
+        'date': fields.date(
+            u"Date",
+        ),
+        'ref': fields.char(
+            u"Reference",
+            size=256,
+        ),
+        'amount': fields.float(
+            u"Amount",
+            digits_compute=dp.get_precision('Account'),
+        ),
+        'comment': fields.text(
+            u"Comment",
+        ),
+        'partner_id': fields.many2one(
+            'res.partner',
+            u"Contact Partner",
+        ),
+        'currency_id': fields.many2one(
+            'res.currency',
+            "Currency",
+            readonly=True,
+        ),
+        'asset_id': fields.many2one(
+            'account.asset.asset',
+            "Asset",
+            readonly=True,
+        )
     }
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

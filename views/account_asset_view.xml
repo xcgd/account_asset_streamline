@@ -110,14 +110,8 @@
                         </group>
                     </page>
                     <page string="Invoice">
-                        <group string="Invoice">
-                            <field name="invoice_date" />
-                            <field name="invoice_ref" />
-                            <field name="partner_id" />
-                            <field name="invoice_amount" widget="monetary" options="{'currency_field': 'currency_id'}" />
-                        </group>
-                        <group string="Comments">
-                            <field name="invoice_comment" nolabel="1" />
+                        <group>
+                            <field name="invoice_ids" context="{'default_currency_id': currency_id, 'default_asset_id': id}" nolabel="1" />
                         </group>
                     </page>
                     <page string="Insurance">
@@ -210,6 +204,43 @@
                 </group>
                 <group string="Notes">
                     <field name="note" nolabel="1"/>
+                </group>
+            </form>
+        </field>
+    </record>
+       
+    <record model="ir.ui.view" id="view_account_asset_invoice_tree">
+        <field name="name">account.asset.invoice.tree</field>
+        <field name="model">account.asset.invoice</field>
+        <field name="arch" type="xml">
+            <tree string="Invoices">
+                <field name="date" />
+                <field name="ref" />
+                <field name="partner_id" />
+                <field name="amount" />
+            </tree>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="view_account_asset_invoice_form">
+        <field name="name">account.asset.invoice.form</field>
+        <field name="model">account.asset.invoice</field>
+        <field name="arch" type="xml">
+            <form string="Invoice" version="7.0">
+                <group string="Invoice">
+                    <group>
+                        <field name="asset_id" />
+                        <field name="ref" />
+                        <field name="partner_id" />
+                    </group>
+                    <group>
+                        <field name="date" />
+                        <field name="amount" widget="monetary" options="{'currency_field': 'currency_id'}" />
+                        <field name="currency_id" />
+                    </group>
+                </group>
+                <group string="Comments">
+                    <field name="comment" nolabel="1" />
                 </group>
             </form>
         </field>
