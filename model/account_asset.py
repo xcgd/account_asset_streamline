@@ -633,14 +633,17 @@ class account_asset_invoice(osv.Model):
     _columns = {
         'date': fields.date(
             u"Date",
+            required=True,
         ),
         'ref': fields.char(
             u"Reference",
             size=256,
+            required=True,
         ),
         'amount': fields.float(
             u"Amount",
             digits_compute=dp.get_precision('Account'),
+            required=True,
         ),
         'comment': fields.text(
             u"Comment",
@@ -653,12 +656,18 @@ class account_asset_invoice(osv.Model):
             'res.currency',
             "Currency",
             readonly=True,
+            required=True,
         ),
         'asset_id': fields.many2one(
             'account.asset.asset',
             "Asset",
             readonly=True,
+            required=True,
         )
+    }
+
+    _defaults = {
+        'date': lambda *a: time.strftime('%Y-%m-%d'),
     }
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
