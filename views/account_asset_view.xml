@@ -26,6 +26,10 @@
                 <xpath expr="//field[@name='depreciation_line_ids']" position="attributes">
                     <attribute name="readonly">1</attribute>
                 </xpath>
+                <xpath expr="//field[@name='depreciation_date']" position="replace">
+                    <field name="name" />
+                    <field name="depreciation_period" />
+                </xpath>
                 <xpath expr="//page[@string='General']" position="replace">
                     <page string="General">
                         <group string="Values" col="6">

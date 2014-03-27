@@ -19,13 +19,15 @@ class account_asset_depreciation_wizard(osv.TransientModel):
             '|',
                 ('last_depreciation_period', '!=', period_id),
                 ('last_depreciation_period', '=', False),
-            '|',
-                '&',
-                    ('method_time', '=', 'end'),
-                    ('method_end', '>=', period_start),
-                '&',
-                    ('method_time', '=', 'number'),
-                    ('method_end_fct', '>=', period_start),
+            '&',
+                ('net_book_value', '!=', 0),
+                '|',
+                    '&',
+                        ('method_time', '=', 'end'),
+                        ('method_end', '>=', period_start),
+                    '&',
+                        ('method_time', '=', 'number'),
+                        ('method_end_fct', '>=', period_start),
         ]
 
         asset_ids = asset_osv.search(cr, uid, domain, context=context)

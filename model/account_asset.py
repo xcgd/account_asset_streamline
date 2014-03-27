@@ -25,58 +25,84 @@ class account_asset_asset_streamline(osv.Model):
 
     # TODO This method needs to be overloaded with a new behavior.
     def compute_depreciation_board(self, cr, uid, ids, context=None):
-        depreciation_lin_obj = self.pool.get('account.asset.depreciation.line')
-        currency_obj = self.pool.get('res.currency')
-        for asset in self.browse(cr, uid, ids, context=context):
-            if asset.value_residual == 0.0:
-                continue
-            posted_depreciation_line_ids = depreciation_lin_obj.search(cr, uid, [('asset_id', '=', asset.id), ('move_check', '=', True)],order='depreciation_date desc')
-            old_depreciation_line_ids = depreciation_lin_obj.search(cr, uid, [('asset_id', '=', asset.id), ('move_id', '=', False)])
-            if old_depreciation_line_ids:
-                depreciation_lin_obj.unlink(cr, uid, old_depreciation_line_ids, context=context)
 
-            amount_to_depr = residual_amount = asset.value_residual
-            if asset.prorata:
-                depreciation_date = datetime.strptime(self._get_last_depreciation_date(cr, uid, [asset.id], context)[asset.id], '%Y-%m-%d')
-            else:
-                # depreciation_date = 1st January of purchase year
-                purchase_date = datetime.strptime(asset.purchase_date, '%Y-%m-%d')
-                #if we already have some previous validated entries, starting date isn't 1st January but last entry + method period
-                if (len(posted_depreciation_line_ids)>0):
-                    last_depreciation_date = datetime.strptime(depreciation_lin_obj.browse(cr,uid,posted_depreciation_line_ids[0],context=context).depreciation_date, '%Y-%m-%d')
-                    depreciation_date = (last_depreciation_date+relativedelta(months=+asset.method_period))
-                else:
-                    depreciation_date = datetime(purchase_date.year, 1, 1)
-            day = depreciation_date.day
-            month = depreciation_date.month
-            year = depreciation_date.year
-            total_days = (year % 4) and 365 or 366
+        assets = self.browse(cr, uid, ids, context=context)
+        line_osv = self.pool.get('account.asset.depreciation.line')
+        today = time.strftime('%Y-%m-%d')
+        line_ids = {}
 
-            undone_dotation_number = self._compute_board_undone_dotation_nb(cr, uid, asset, depreciation_date, total_days, context=context)
-            for x in range(len(posted_depreciation_line_ids), undone_dotation_number):
-                i = x + 1
-                amount = self._compute_board_amount(cr, uid, asset, i, residual_amount, amount_to_depr, undone_dotation_number, posted_depreciation_line_ids, total_days, depreciation_date, context=context)
-                company_currency = asset.company_id.currency_id.id
-                current_currency = asset.currency_id.id
-                # compute amount into company currency
-                amount = currency_obj.compute(cr, uid, current_currency, company_currency, amount, context=context)
-                residual_amount -= amount
-                vals = {
-                     'amount': amount,
-                     'asset_id': asset.id,
-                     'sequence': i,
-                     'name': str(asset.id) +'/' + str(i),
-                     'remaining_value': residual_amount,
-                     'depreciated_value': (asset.purchase_value - asset.salvage_value) - (residual_amount + amount),
-                     'depreciation_date': depreciation_date.strftime('%Y-%m-%d'),
-                }
-                depreciation_lin_obj.create(cr, uid, vals, context=context)
-                # Considering Depr. Period as months
-                depreciation_date = (datetime(year, month, day) + relativedelta(months=+asset.method_period))
-                day = depreciation_date.day
-                month = depreciation_date.month
-                year = depreciation_date.year
-        return True
+        for a in assets:
+
+            asset_id = a.id
+            end = a.method_end if a.method_time == 'end' else a.method_end_fct
+            vals = {
+                'net_book_value': a.net_book_value,
+                'depreciation_auto': a.depreciation_auto,
+                'depreciation_total': a.depreciation_total,
+                'theoretical_depreciation': a.theoretical_depreciation,
+            }
+            sequence = 0
+            line_ids[asset_id] = []
+
+            period_osv = self.pool.get('account.period')
+            next_period_id = self._get_period(cr, uid, context)
+            if next_period_id == a.last_depreciation_period.id:
+                p = period_osv.browse(cr, uid, next_period_id, context=context)
+                next_period_id = period_osv.next(cr, uid, p, 1, context)
+
+            old_line_ids = line_osv.search(cr, uid,
+                [('asset_id', '=', asset_id), ('move_id', '=', False)]
+            )
+            if old_line_ids:
+                line_osv.unlink(cr, uid, old_line_ids, context=context)
+
+            while vals['net_book_value'] != 0:
+
+                period_id = next_period_id
+                period = period_osv.browse(cr, uid, period_id, context=context)
+                next_period_id = period_osv.next(cr, uid, period, 1, context)
+                try:
+                    if period.date_start == period.date_stop:
+                        continue
+                except AttributeError:
+                    break
+
+                old_depreciation_total = vals['depreciation_total']
+                old_net_book_value = vals['net_book_value']
+                vals = self._compute_depreciation(a, period, vals=vals)
+
+                for line_type in ('correction_value', 'depreciation_value'):
+
+                    sequence += 1
+                    amount = vals.pop(line_type, 0)
+                    if not amount:
+                        continue
+
+                    if line_type == 'correction_value':
+                        name = _(u"Projected Correction")
+                        net_book_value = old_net_book_value - amount
+                    else:
+                        name = _(u"Projected Depreciation")
+                        net_book_value = vals['net_book_value']
+
+                    line_vals = {
+                        'name': name,
+                        'sequence': sequence,
+                        'asset_id': asset_id,
+                        'amount': amount,
+                        'remaining_value': net_book_value,
+                        'depreciated_value': old_depreciation_total,
+                        'depreciation_date': today,
+                        'depreciation_period': period_id
+                    }
+                    line = line_osv.create(cr, uid, line_vals, context=context)
+                    line_ids[asset_id].append(line)
+                    old_depreciation_total += amount
+
+                if period.date_start > end:
+                    break
+
+        return line_ids
 
     def _get_method_end(self, cr, uid, ids, field_name, args, context=None):
         """Compute the end date from the number of depreciations"""
@@ -121,6 +147,7 @@ class account_asset_asset_streamline(osv.Model):
             salvage_value = asset.adjusted_salvage_value
             depreciations = asset.depreciation_total
             res[asset.id] = gross_value - salvage_value - depreciations
+
         return res
 
     def _sum(self, fields, cr, uid, ids, field_name, args, context=None):
@@ -163,7 +190,7 @@ class account_asset_asset_streamline(osv.Model):
 
         return nb_days
 
-    def _compute_depreciation_lines(self, asset, period, vals=None):
+    def _compute_depreciation(self, asset, period, vals=None):
 
         if vals is None:
             vals = {}
@@ -177,51 +204,76 @@ class account_asset_asset_streamline(osv.Model):
             'depreciation_auto',
             asset.depreciation_auto
         )
+        depreciation_total = vals.get(
+            'depreciation_total',
+            asset.depreciation_total
+        )
 
         remaining_days = self._calculate_days(asset, period_start=period_start)
 
         if remaining_days <= 0:
             vals['depreciation_auto'] = depreciation_auto + net_book_value
+            vals['depreciation_total'] = depreciation_total + net_book_value
             vals['correction_value'] = net_book_value
             vals['net_book_value'] = 0
             return vals
 
-        first_deprecation = (period_start.month == service_start.month and
+        first_depreciation = (period_start.month == service_start.month and
             period_start.year == service_start.year)
 
         total_days = self._calculate_days(asset)
         elapsed_days = total_days - remaining_days
 
-        if not first_deprecation:
+        theoretical_depreciation = vals.get(
+            'theoretical_depreciation',
+            asset.theoretical_depreciation
+        )
 
-            previous_daily_depreciation = vals.get(
-                'previous_daily_depreciation',
-                asset.previous_daily_depreciation
-            )
-            expected_book_value = previous_daily_depreciation * elapsed_days
-            correction_value = net_book_value - expected_book_value
+        if not theoretical_depreciation:
+            initial = asset.adjusted_gross_value - asset.adjusted_salvage_value
+            theoretical_depreciation = initial / total_days
 
-            if correction_value != 0:
-                depreciation_auto += correction_value
-                net_book_value -= correction_value
-                vals['correction_value'] = correction_value
+        print "Old depreciation:", theoretical_depreciation
+        expected_depreciation = theoretical_depreciation * elapsed_days
+        correction_value = expected_depreciation - depreciation_total
+
+        # Correction line only if there is at least one cent to correct
+        if abs(correction_value) > 0.01:
+            depreciation_auto += correction_value
+            depreciation_total += correction_value
+            net_book_value -= correction_value
+            vals['correction_value'] = correction_value
+
+        daily_depreciation = net_book_value / remaining_days
+        print net_book_value, "/", remaining_days, "=", daily_depreciation
 
         if remaining_days <= 30:
             depreciation_value = net_book_value
 
         else:
-            daily_depreciation = net_book_value / remaining_days
-            if first_deprecation:
+            if first_depreciation:
                 prorata = 30 - service_start.day + period_start.day
                 depreciation_value = daily_depreciation * prorata
             else:
                 depreciation_value = daily_depreciation * 30
 
-        vals['previous_daily_depreciation'] = daily_depreciation
+        depreciation_total += depreciation_value
+        depreciation_auto += depreciation_value
+        net_book_value -= depreciation_value
+
+        next_elapsed_days = elapsed_days + min(30, remaining_days)
+        theoretical_depreciation = depreciation_total / next_elapsed_days
+        print "New depreciation:", theoretical_depreciation
+
+        vals['theoretical_depreciation'] = theoretical_depreciation
         vals['depreciation_value'] = depreciation_value
-        vals['depreciation_auto'] = depreciation_auto + depreciation_value
-        vals['net_book_value'] = net_book_value - depreciation_value
+        vals['depreciation_auto'] = depreciation_auto
+        vals['depreciation_total'] = depreciation_total
+        vals['net_book_value'] = net_book_value
+        print "-------Values-------"
         print vals
+        print "--------------------"
+        print
         return vals
 
     _gross_cols = ['purchase_value', 'additional_value']
@@ -344,9 +396,8 @@ class account_asset_asset_streamline(osv.Model):
                 ),
             },
         ),
-        'previous_daily_depreciation': fields.float(
-            u"Previous Daily Depreciation",
-            readonly=True,
+        'theoretical_depreciation': fields.float(
+            u"Theoretical Daily Depreciation",
         ),
         'quantity': fields.char(
             u"Quantity",
@@ -554,6 +605,17 @@ class account_asset_asset_streamline(osv.Model):
         'service_date': lambda *a: time.strftime('%Y-%m-%d'),
     }
 
+    def unlink(self, cr, uid, ids, context=None):
+
+        history_osv = self.pool.get('account.asset.history')
+        for asset in self.browse(cr, uid, ids, context=context):
+            domain = [('asset_id', '=', asset.id)]
+            history_ids = history_osv.search(cr, uid, domain, context=context)
+            history_osv.unlink(cr, uid, history_ids, context=context)
+        return super(account_asset_asset_streamline, self).unlink(
+            cr, uid, ids, context=context
+        )
+
     def set_to_close(self, cr, uid, ids, context=None):
         vals = {'state': 'close', 'disposal_date': time.strftime('%Y-%m-%d')}
         return self.write(cr, uid, ids, vals, context=context)
@@ -617,19 +679,18 @@ class account_asset_asset_streamline(osv.Model):
         assets = self.browse(cr, uid, ids, context=context)
         for asset in assets:
 
-            vals = self._compute_depreciation_lines(asset, period)
+            vals = self._compute_depreciation(asset, period)
             vals['last_depreciation_period'] = period_id
-            vals.pop('net_book_value')
 
-            correction_value = vals.pop('correction_value', None)
+            correction_value = vals.pop('correction_value', 0)
             if correction_value:
                 # TODO: Create correction line
-                print correction_value
+                print "Correction value:", correction_value
 
-            depreciation_value = vals.pop('depreciation_value', None)
+            depreciation_value = vals.pop('depreciation_value', 0)
             if depreciation_value:
                 # TODO: Create depreciation line
-                print depreciation_value
+                print "Depreciat° value:", depreciation_value
 
             self.write(cr, uid, asset.id, vals, context=context)
 
@@ -648,7 +709,8 @@ class account_asset_values_history(osv.Model):
         'asset_id': fields.many2one(
             'account.asset.asset',
             u"Asset",
-            required=True
+            required=True,
+            ondelete='cascade'
         ),
         'adjusted_value': fields.selection(
             [
@@ -678,6 +740,12 @@ class account_asset_depreciation_line(osv.Model):
             "account.period",
             u'Depreciation Period',
             readonly=True,
+        ),
+        'currency_id': fields.related(
+            'asset_id',
+            'currency_id',
+            type='many2one',
+            string='Currency'
         ),
     }
 
