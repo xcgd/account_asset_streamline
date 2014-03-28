@@ -23,7 +23,6 @@ class account_asset_asset_streamline(osv.Model):
     _name = 'account.asset.asset'
     _inherit = 'account.asset.asset'
 
-    # TODO This method needs to be overloaded with a new behavior.
     def compute_depreciation_board(self, cr, uid, ids, context=None):
 
         assets = self.browse(cr, uid, ids, context=context)
@@ -41,7 +40,7 @@ class account_asset_asset_streamline(osv.Model):
                 'depreciation_total': a.depreciation_total,
                 'theoretical_depreciation': a.theoretical_depreciation,
             }
-            sequence = 0
+            sequence = a.depreciation_line_sequence
             line_ids[asset_id] = []
 
             period_osv = self.pool.get('account.period')
@@ -445,6 +444,10 @@ class account_asset_asset_streamline(osv.Model):
             u"Last Depreciation Period",
             readonly=True,
         ),
+        'depreciation_line_sequence': fields.integer(
+            u"Depreciation Line Sequence",
+            readonly=True,
+        ),
         'method_end_fct': fields.function(
             _get_method_end,
             type='date',
@@ -601,6 +604,7 @@ class account_asset_asset_streamline(osv.Model):
     }
 
     _defaults = {
+        'depreciation_line_sequence': 0,
         'method_period': 1,
         'service_date': lambda *a: time.strftime('%Y-%m-%d'),
     }
@@ -693,6 +697,7 @@ class account_asset_asset_streamline(osv.Model):
                 print "Depreciat° value:", depreciation_value
 
             self.write(cr, uid, asset.id, vals, context=context)
+            self.compute_depreciation_board(cr, uid, asset.id, context=context)
 
     # TODO Implementation
     def depreciate_move(self, cr, uid, ids, depreciation_value, context=None):
@@ -748,6 +753,7 @@ class account_asset_depreciation_line(osv.Model):
             string='Currency'
         ),
     }
+    _order = "sequence"
 
 
 class account_asset_invoice(osv.Model):

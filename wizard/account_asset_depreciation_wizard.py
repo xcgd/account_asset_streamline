@@ -19,7 +19,7 @@ class account_asset_depreciation_wizard(osv.TransientModel):
             '|',
                 ('last_depreciation_period', '!=', period_id),
                 ('last_depreciation_period', '=', False),
-            '&',
+            '|',
                 ('net_book_value', '!=', 0),
                 '|',
                     '&',
