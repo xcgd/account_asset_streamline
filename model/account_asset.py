@@ -254,9 +254,12 @@ class account_asset_asset_streamline(osv.Model):
         vals['depreciation_auto'] += depreciation
         vals['net_book_value'] -= depreciation
 
+        print first_depreciation
+
         next_days = elapsed_days + min(prorata, remaining_days)
-        theoretical_depreciation = vals['depreciation_total'] / next_days
-        vals['theoretical_depreciation'] = theoretical_depreciation
+        if next_days > 0:
+            theoretical_depreciation = vals['depreciation_total'] / next_days
+            vals['theoretical_depreciation'] = theoretical_depreciation
 
         yield {'type': 'depreciation', 'amount': depreciation, 'vals': vals}
         return
@@ -344,9 +347,6 @@ class account_asset_asset_streamline(osv.Model):
             u"Automatic Depreciations",
             readonly=True,
             digits_compute=dp.get_precision('Account'),
-            states={
-                'draft': [('readonly', False)]
-            },
         ),
         'depreciation_manual': fields.float(
             u"Manual Depreciations",
@@ -620,6 +620,9 @@ class account_asset_asset_streamline(osv.Model):
     def reactivate(self, cr, uid, ids, context=None):
         vals = {'state': 'open'}
         return self.write(cr, uid, ids, vals, context=context)
+
+    def onchange_category_id(self, cr, uid, ids, category_id, context=None):
+        return {}
 
     def fields_get(
         self, cr, uid, allfields=None, context=None, write_access=True

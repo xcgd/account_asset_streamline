@@ -29,6 +29,7 @@
         'demo/account_asset_demo.xml'
     ],
     'css': [
+        'static/src/css/account_asset_streamline.css'
     ],
     'test': [],
     'installable': True,

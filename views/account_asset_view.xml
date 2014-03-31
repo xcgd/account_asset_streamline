@@ -8,6 +8,9 @@
         <field name="inherit_id" ref="account_asset.view_account_asset_asset_form"/>
         <field name="arch" type="xml">
             <data>
+                <xpath expr="//sheet" position="attributes">
+                    <attribute name="class">oe_form_sheet_width_wider</attribute>
+                </xpath>
                 <xpath expr="//button[@name='set_to_close']" position="replace">
                     <button name="%(action_asset_close)d" states="open" string="Set to Close" groups="account.group_account_manager"
                         type="action" class="oe_highlight" context="{'default_currency_id': currency_id}" />
@@ -175,8 +178,11 @@
         <field name="inherit_id" ref="account_asset.view_account_asset_category_form"/>
         <field name="arch" type="xml">
             <data>
-                <xpath expr="//field[@name='method_period']" position="replace">
-                    <field name="method_period" invisible="1"/>
+                <xpath expr="//group[@string='Depreciation Dates']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//group[@string='Depreciation Method']" position="attributes">
+                    <attribute name="invisible">1</attribute>
                 </xpath>
             </data>
         </field>
