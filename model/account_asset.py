@@ -179,7 +179,8 @@ class account_asset_asset_streamline(osv.Model):
             if period_start > srv_date:
                 nb_months -= period_start.month - srv_date.month
                 nb_months -= (period_start.year - srv_date.year) * 12
-                nb_days = srv_date.day - period_start.day + nb_months * 30
+                nb_days = min(30, srv_date.day) - min(30, period_start.day)
+                nb_days += nb_months * 30
             else:
                 nb_days = nb_months * 30
 
@@ -188,7 +189,7 @@ class account_asset_asset_streamline(osv.Model):
             start_date = period_start if period_start > srv_date else srv_date
             nb_months = end_date.month - start_date.month
             nb_months += (end_date.year - start_date.year) * 12
-            nb_days = end_date.day - start_date.day
+            nb_days = min(30, end_date.day) - min(30, start_date.day)
             nb_days += nb_months * 30
 
         return nb_days
@@ -200,7 +201,7 @@ class account_asset_asset_streamline(osv.Model):
 
         pattern = "%Y-%m-%d"
         period_start = datetime.strptime(period.date_start, pattern).date()
-        service_start = datetime.strptime(asset.service_date, pattern).date()
+        srv_start = datetime.strptime(asset.service_date, pattern).date()
 
         for k in ('net_book_value', 'depreciation_auto', 'depreciation_total'):
             vals.setdefault(k, getattr(asset, k))
@@ -215,8 +216,8 @@ class account_asset_asset_streamline(osv.Model):
             yield {'type': 'correction', 'amount': correction, 'vals': vals}
             return
 
-        first_depreciation = (period_start.month == service_start.month and
-            period_start.year == service_start.year)
+        first_depreciation = (period_start.month == srv_start.month and
+            period_start.year == srv_start.year)
 
         total_days = self._calculate_days(asset)
         elapsed_days = total_days - remaining_days
@@ -247,7 +248,7 @@ class account_asset_asset_streamline(osv.Model):
 
         else:
             if first_depreciation:
-                prorata -= service_start.day - period_start.day
+                prorata -= min(30, srv_start.day) - min(30, period_start.day)
             depreciation = daily_depreciation * prorata
 
         vals['depreciation_total'] += depreciation
@@ -257,9 +258,8 @@ class account_asset_asset_streamline(osv.Model):
         print first_depreciation
 
         next_days = elapsed_days + min(prorata, remaining_days)
-        if next_days > 0:
-            theoretical_depreciation = vals['depreciation_total'] / next_days
-            vals['theoretical_depreciation'] = theoretical_depreciation
+        theoretical_depreciation = vals['depreciation_total'] / next_days
+        vals['theoretical_depreciation'] = theoretical_depreciation
 
         yield {'type': 'depreciation', 'amount': depreciation, 'vals': vals}
         return
