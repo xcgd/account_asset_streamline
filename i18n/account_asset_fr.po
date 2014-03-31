@@ -24,9 +24,19 @@ msgid "History"
 msgstr "Historique"
 
 #. module: account_asset
+#: field:account.asset.depreciation.line,amount:0
+msgid "Current Depreciation"
+msgstr "Amortissement effectué"
+
+#. module: account_asset
 #: field:account.asset.depreciation.line,depreciated_value:0
 msgid "Amount Already Depreciated"
-msgstr "Montant déjà amorti"
+msgstr "Amortissement total"
+
+#. module: account_asset
+#: field:account.asset.depreciation.line,remaining_value:0
+msgid "Next Period Depreciation"
+msgstr "Valeur nette comptable"
 
 #. module: account_asset_streamline
 #: selection:account.asset.asset,state:0
