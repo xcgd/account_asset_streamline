@@ -90,7 +90,7 @@
                                 </group>
                             </group>
                             <group string="Method" colspan="2">
-                                <field name="method"/>
+                                <field name="method" attrs="{'invisible':[('method', '=', 'linear')]}"/>
                                 <field name="method_progress_factor" attrs="{
                                     'invisible':[('method','=','linear')],
                                     'required':[('method','=','degressive')]

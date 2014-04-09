@@ -691,6 +691,27 @@ class account_asset_asset_streamline(osv.Model):
         'service_date': lambda *a: time.strftime('%Y-%m-%d'),
     }
 
+    def copy(self, cr, uid, ids, default=None, context=None):
+
+        if default is None:
+            default = {}
+
+        default['state'] = 'draft'
+        default['additional_value'] = 0
+        default['salvage_adjust'] = 0
+        default['depreciation_manual'] = 0
+        default['theoretical_depreciation'] = 0
+        default['depreciation_auto'] = 0
+        default['last_depreciation_period'] = None,
+        default['depreciation_line_ids'] = False
+        default['account_move_line_ids'] = False
+        default['history_ids'] = False
+        default['values_history_ids'] = False
+
+        return super(account_asset_asset_streamline, self).copy(
+            cr, uid, ids, default=default, context=context
+        )
+
     def unlink(self, cr, uid, ids, context=None):
 
         history_osv = self.pool.get('account.asset.history')
