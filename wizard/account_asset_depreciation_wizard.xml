@@ -11,12 +11,17 @@
                 <header>
                     <button name="depreciate_assets" string="Depreciate selected assets" type="object" class="oe_highlight"/>
                 </header>
-            	<field
-            	    name="asset_ids"
-            	    required="True"
-            	    domain="[('id', 'in', [])]"
-            	    on_change="onchange_assets()"
-            	/>
+                <group>
+                    <group>
+	                    <field name="period_id" domain="[('state', '!=', 'done')]" on_change="onchange_period(period_id)"/>
+                    </group>
+                    <group>
+                        <field name="auto" nolabel="1" on_change="auto_select(auto, period_id)"/>
+                    </group>
+                </group>
+                <group>
+            	   <field name="asset_ids" domain="[('id', 'in', [])]" />
+            	</group>
             </form>
         </field>
     </record>

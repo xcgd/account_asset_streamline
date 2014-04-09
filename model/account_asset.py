@@ -4,11 +4,28 @@ from openerp.osv import fields, osv
 import time
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
-from tools.translate import _
+from openerp.tools.translate import _
 import openerp.addons.decimal_precision as dp
+import psycopg2
+
+
+class period_error(osv.except_osv):
+    """Thrown during the projection of an asset's depreciation when it failed
+    to get the next period. Takes a date from last period as an argument."""
+
+    MSG_PATTERN = _(
+        u"No period was found after the month: {month}/{year}. "
+        u"You may need to create the missing periods."
+    )
+
+    def __init__(self, period_date):
+        year, month, day = period_date.split('-')
+        msg = self.MSG_PATTERN.format(year=year, month=month, day=day)
+        super(period_error, self).__init__(_(u"Error!"), msg)
 
 
 class account_asset_category_streamline(osv.Model):
+    """Extends account.asset.category, from the core module account_asset"""
 
     _name = 'account.asset.category'
     _inherit = 'account.asset.category'
@@ -19,89 +36,124 @@ class account_asset_category_streamline(osv.Model):
 
 
 class account_asset_asset_streamline(osv.Model):
+    """Extends account.asset.asset, from the core module account_asset"""
 
     _name = 'account.asset.asset'
     _inherit = ["account.asset.asset", "mail.thread"]
 
     def compute_depreciation_board(self, cr, uid, ids, context=None):
-        """ Creates the projected depreciation/correction lines in the
-        Depreciation Board table."""
+        """ Create the projected depreciation/correction lines in the
+        Depreciation Board table.
+        Return a dictionary mapping each asset's ID to its projected lines'"""
+
+        if context == None:
+            context = {}
 
         assets = self.browse(cr, uid, ids, context=context)
         line_osv = self.pool.get('account.asset.depreciation.line')
         period_osv = self.pool.get('account.period')
         today_str = time.strftime('%Y-%m-%d')
+
+        # Return value, as described in the doc string.
         line_ids = {}
-        error = _(u"No period was found after the date: {0}. " \
-            "You may need to create them.")
 
-        for a in assets:
+        # Iterate for every asset.
+        for asset in assets:
 
-            asset_id = a.id
-            depreciable_amount = a.depreciable_amount
-            end = a.method_end if a.method_time == 'end' else a.method_end_fct
-            vals = {
-                'net_book_value': a.net_book_value,
-                'depreciation_auto': a.depreciation_auto,
-                'depreciation_total': a.depreciation_total,
-                'theoretical_depreciation': a.theoretical_depreciation,
-            }
-            sequence = a.depreciation_line_sequence
+            asset_id = asset.id
             line_ids[asset_id] = []
+            sequence = asset.depreciation_line_sequence
+            if asset.method_time == 'end':
+                end = asset.method_end
+            else:
+                end = asset.method_end_fct
 
-            # Get the latest of current period or placed in service period.
-            cur_id = self._get_period(cr, uid, context)
-            nxt_id = period_osv.find(cr, uid, a.service_date, context)[0]
-            domain = ['|', ('id', '=', cur_id), ('id', '=', nxt_id)]
-            period_id = period_osv.search(cr, uid, domain, context=context)[-1]
-            if period_id == a.last_depreciation_period.id:
-                p = period_osv.browse(cr, uid, period_id, context=context)
-                period_id = period_osv.next(cr, uid, p, 1, context)
+            # Delete the old projection lines for the current asset.
+            # Keep the actual (move_id=true) and missed (amount=0) lines.
+            old_domain = [
+                ('asset_id', '=', asset_id),
+                ('move_id', '=', False),
+                ('amount', '!=', 0),
+            ]
+            old_ids = line_osv.search(cr, uid, old_domain, context=context)
+            if old_ids:
+                line_osv.unlink(cr, uid, old_ids, context=context)
 
-            old_line_ids = line_osv.search(cr, uid,
-                [('asset_id', '=', asset_id), ('move_id', '=', False)]
-            )
-            if old_line_ids:
-                line_osv.unlink(cr, uid, old_line_ids, context=context)
+            # This dictionary's role is to keep the asset's projected field
+            # values throughout the simulation. Its values are updated after
+            # each iteration of the _generate_depreciations generator.
+            vals = {
+                'net_book_value': asset.net_book_value,
+                'depreciation_auto': asset.depreciation_auto,
+                'depreciation_total': asset.depreciation_total,
+                'theoretical_depreciation': asset.theoretical_depreciation,
+            }
 
-            while vals['net_book_value'] != 0:
+            # If the asset has never been depreciated, start with the put-into-
+            # service period. Otherwise, use the earliest non-depreciated one.
+            last_period = asset.last_depreciation_period
+            if not last_period:
+                previous_date = asset.service_date
+                service_ids = period_osv.find(
+                    cr, uid, previous_date,
+                    context=dict(context, account_period_prefer_normal=True)
+                )
+                if service_ids:
+                    period_id = service_ids[0]
+                else:
+                    raise period_error(asset.service_date)
+            else:
+                previous_date = last_period.date_start
+                period_id = period_osv.next(cr, uid, last_period, 1, context)
 
+            # Browse the starting period and test its existence.
+            try:
                 period = period_osv.browse(cr, uid, period_id, context=context)
+                period_start = period.date_start
+            except (psycopg2.ProgrammingError, IndexError):
+                raise period_error(previous_date)
+
+            # For the current asset, loop on the periods until the NBV is 0 AND
+            # the current period starts after the depreciation's end date.
+            while period_start <= end or vals['net_book_value']:
+
+                # If the period returned is special, try to get a non-special
+                # period with the same start date.
                 try:
-                    date_start = period.date_start
                     if period.special:
-                        period_id = period_osv.find(cr, uid, date_start,
+                        period_id = period_osv.find(cr, uid, period.date_start,
                             dict(context, account_period_prefer_normal=True)
                         )[0]
                         period = period_osv.browse(
                             cr, uid, period_id, context=context
                         )
                         if period.special:
-                            raise Exception
-                except:
-                    raise osv.except_osv(_('Error!'), error.format(date_start))
+                            raise period_error(period_start)
+                except (psycopg2.ProgrammingError, IndexError):
+                    raise period_error(period_start)
 
-                next_period_id = period_osv.next(cr, uid, period, 1, context)
-                depr_iter = self._compute_depreciation(a, period, vals=vals)
-
-                for depr in depr_iter:
+                # Generate up to two lines for each period: depreciation and/or
+                # correction. Create each of those lines in the database.
+                depr_iter = self._generate_depreciations(asset, period, vals)
+                for depreciation in depr_iter:
 
                     sequence += 1
-                    amount = depr['amount']
+                    amount = depreciation['amount']
                     if not amount:
                         continue
 
-                    if depr['type'] == 'correction':
+                    if depreciation['type'] == 'correction':
                         name = _(u"Projected Correction")
                     else:
                         name = _(u"Projected Depreciation")
 
+                    # Create the projected depreciation line.
                     line_vals = {
                         'name': name,
                         'sequence': sequence,
                         'asset_id': asset_id,
                         'amount': amount,
-                        'depreciable_amount': depreciable_amount,
+                        'depreciable_amount': asset.depreciable_amount,
                         'remaining_value': vals['net_book_value'],
                         'depreciated_value': vals['depreciation_total'],
                         'depreciation_date': today_str,
@@ -110,9 +162,14 @@ class account_asset_asset_streamline(osv.Model):
                     line = line_osv.create(cr, uid, line_vals, context=context)
                     line_ids[asset_id].append(line)
 
-                if date_start > end:
-                    break
-                period_id = next_period_id
+                # Get the next period.
+                period_id = period_osv.next(cr, uid, period, 1, context)
+                period = period_osv.browse(cr, uid, period_id, context=context)
+                # Finally, update period_start for the next iteration.
+                try:
+                    period_start = period.date_start
+                except (psycopg2.ProgrammingError):
+                    raise period_error(period_start)
 
         return line_ids
 
@@ -150,6 +207,8 @@ class account_asset_asset_streamline(osv.Model):
         return res
 
     def _get_book_value(self, cr, uid, ids, field_name, args, context=None):
+        """Compute the net book value from the (adjusted) gross value, the
+        (adjusted) salvage value, and the total of all depreciations."""
 
         assets = self.browse(cr, uid, ids, context=context)
         res = {}
@@ -162,6 +221,7 @@ class account_asset_asset_streamline(osv.Model):
         return res
 
     def _get_depr_amount(self, cr, uid, ids, field_name, args, context=None):
+        """Get the amount to depreciate from the gross and salvage values"""
 
         assets = self.browse(cr, uid, ids, context=context)
         res = {}
@@ -187,22 +247,33 @@ class account_asset_asset_streamline(osv.Model):
         return res
 
     def _calculate_days(self, asset, period_start=None):
+        """If a starting date is specified as a date object, return the number
+        of days between that date and the end date of the depreciation.
+        Otherwise, return the total duration of the depreciation instead"""
 
-        method_time = asset.method_time
+        # Parse the asset's put-into-service date into a date object.
         srv_date = datetime.strptime(asset.service_date, "%Y-%m-%d").date()
+        # Use it as our starting date if said value was not given as argument.
         if period_start is None:
             period_start = srv_date
 
+        # If the end is defined by a number of depreciations, use this number.
+        method_time = asset.method_time
         if method_time == 'number':
             nb_months = asset.method_number
+            # If the depreciation has already begun at the given date...
             if period_start > srv_date:
+                # ...we need to take the elapsed months and days into account.
                 nb_months -= period_start.month - srv_date.month
                 nb_months -= (period_start.year - srv_date.year) * 12
                 nb_days = min(30, srv_date.day) - min(30, period_start.day)
                 nb_days += nb_months * 30
             else:
+                # We can get the number of days directly from the depreciations
                 nb_days = nb_months * 30
 
+        # If it is determined by an end date, take the difference between the
+        # end date and the latest of either the given date or the service date.
         else:
             end_date = datetime.strptime(asset.method_end, "%Y-%m-%d").date()
             start_date = period_start if period_start > srv_date else srv_date
@@ -213,7 +284,8 @@ class account_asset_asset_streamline(osv.Model):
 
         return nb_days
 
-    def _compute_depreciation(self, asset, period, vals=None):
+    def _generate_depreciations(self, asset, period, vals=None):
+        """Yield up to two """
 
         if vals is None:
             vals = {}
@@ -359,7 +431,6 @@ class account_asset_asset_streamline(osv.Model):
                 'draft': [('readonly', False)]
             },
         ),
-        # TODO Should be functional or at least readonly and edited by methods.
         'depreciation_auto': fields.float(
             u"Automatic Depreciations",
             readonly=True,
@@ -704,16 +775,46 @@ class account_asset_asset_streamline(osv.Model):
 
             sequence = asset.depreciation_line_sequence
             vals = {}
-            depr_iter = self._compute_depreciation(asset, period, vals=vals)
 
-            for depr in depr_iter:
+            # Before the actual depreciation, we must create the missing lines
+            if asset.last_depreciation_period:
+                last_period_end = asset.last_depreciation_period.date_stop
+            else:
+                split_service_date = asset.service_date.split('-')
+                year, month = [int(x) for x in split_service_date[0:2]]
+                last_period_end = date(year, month, 1) - relativedelta(days=1)
+            miss_domain = [
+                ('date_start', '>', last_period_end),
+                ('date_stop', '<', period.date_start),
+                ('special', '=', False),
+            ]
+            miss_id = period_osv.search(cr, uid, miss_domain, context=context)
+            print miss_domain, miss_id
+            miss_periods = period_osv.browse(cr, uid, miss_id, context=context)
+            for miss_period in miss_periods:
+                sequence += 1
+                missed_period_vals = {
+                    'name': _(u"Missed Depreciation"),
+                    'sequence': sequence,
+                    'asset_id': asset.id,
+                    'amount': 0,
+                    'depreciable_amount': asset.depreciable_amount,
+                    'remaining_value': asset.net_book_value,
+                    'depreciated_value': asset.depreciation_total,
+                    'depreciation_date': today_str,
+                    'depreciation_period': miss_period.id,
+                }
+                line_osv.create(cr, uid, missed_period_vals, context=context)
+
+            depr_iter = self._generate_depreciations(asset, period, vals=vals)
+            for depreciation in depr_iter:
 
                 sequence += 1
-                amount = depr['amount']
+                amount = depreciation.get('amount', False)
                 if not amount:
                     continue
 
-                if depr['type'] == 'correction':
+                if depreciation['type'] == 'correction':
                     type_str = _(u"Correction")
                 else:
                     type_str = _(u"Depreciation")

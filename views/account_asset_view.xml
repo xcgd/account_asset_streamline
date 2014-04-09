@@ -30,6 +30,13 @@
                     <attribute name="readonly">1</attribute>
                 </xpath>
                 <xpath expr="//field[@name='amount']" position="replace" />
+                <xpath expr="//field[@name='depreciation_line_ids']/tree" position="attributes">
+                    <attribute name="colors"><![CDATA[
+                        blue:(move_check == False and amount != 0);
+                        grey:(move_check == False and amount == 0);
+                        black:(move_check == True)
+                    ]]></attribute>
+                </xpath>
                 <xpath expr="//field[@name='depreciation_date']" position="replace">
                     <field name="name" />
                     <field name="depreciation_period" />

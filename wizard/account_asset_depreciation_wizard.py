@@ -1,23 +1,25 @@
 from openerp.osv import osv, fields
+from openerp.tools.translate import _
 
 
 class account_asset_depreciation_wizard(osv.TransientModel):
     _name = 'account.asset.depreciation.wizard'
 
-    def _get_asset_ids(self, cr, uid, context=None):
+    def _get_asset_domain(self, cr, uid, period_id, context=None):
 
-        asset_osv = self.pool.get('account.asset.asset')
-        period_id = asset_osv._get_period(cr, uid, context)
+        if period_id is False:
+            return [('id', 'in', [])]
+
         period_osv = self.pool.get('account.period')
         period = period_osv.browse(cr, uid, period_id, context)
         period_start = period.date_start
         period_stop = period.date_stop
 
-        domain = [
+        return [
             ('state', '=', 'open'),
             ('service_date', '<=', period_stop),
             '|',
-                ('last_depreciation_period', '!=', period_id),
+                ('last_depreciation_period.date_stop', '<', period_start),
                 ('last_depreciation_period', '=', False),
             '|',
                 ('net_book_value', '!=', 0),
@@ -30,8 +32,20 @@ class account_asset_depreciation_wizard(osv.TransientModel):
                         ('method_end_fct', '>=', period_start),
         ]
 
-        asset_ids = asset_osv.search(cr, uid, domain, context=context)
-        return asset_ids
+    def _get_default_period(self, cr, uid, context=None):
+        asset_osv = self.pool.get('account.asset.asset')
+        period_osv = self.pool.get('account.period')
+        period_id = asset_osv._get_period(cr, uid, context=context)
+        period = period_osv.browse(cr, uid, period_id, context=context)
+        if period.state == 'done':
+            return False
+        else:
+            return period_id
+
+    _auto_values = [
+        ('all', "Select all depreciable assets"),
+        ('none', "Clear selection"),
+    ]
 
     _columns = {
         'asset_ids': fields.many2many(
@@ -40,26 +54,58 @@ class account_asset_depreciation_wizard(osv.TransientModel):
             'wizard_id',
             'asset_id',
             string=u"Assets",
+            required=True,
+        ),
+        'period_id': fields.many2one(
+            'account.period',
+            u"Period",
+            required=True,
+        ),
+        'auto': fields.selection(
+            _auto_values,
+            u"Auto selection",
+            translate=True,
         )
     }
 
     _defaults = {
-        'asset_ids': _get_asset_ids
+        'period_id': _get_default_period,
+        'auto': False,
     }
 
-    def onchange_assets(self, cr, uid, ids, context=None):
+    def onchange_period(self, cr, uid, ids, period_id, context=None):
 
-        asset_ids = self._get_asset_ids(cr, uid, context=context)
-        asset_ids_domain = [('id', 'in', asset_ids)]
-        domain = {'asset_ids': asset_ids_domain}
-        return {'values': {}, 'domain': domain}
+        domain = self._get_asset_domain(cr, uid, period_id, context=context)
+        asset_osv = self.pool.get('account.asset.asset')
+        asset_ids = asset_osv.search(cr, uid, domain, context=context)
+        return {
+            'domain': {'asset_ids': domain},
+            'value': {'asset_ids': asset_ids}
+        }
+
+    def auto_select(self, cr, uid, ids, auto, period_id, context=None):
+
+        res = {'auto': False}
+        if auto == 'none':
+            res['asset_ids'] = []
+        elif auto == 'all':
+            asset_osv = self.pool.get('account.asset.asset')
+            dom = self._get_asset_domain(cr, uid, period_id, context=context)
+            res['asset_ids'] = asset_osv.search(cr, uid, dom, context=context)
+        return {'value': res}
 
     def depreciate_assets(self, cr, uid, ids, context=None):
 
         asset_osv = self.pool.get('account.asset.asset')
-        asset_read = self.read(cr, uid, ids, ['asset_ids'], context=context)
-        unchecked_asset_ids = set(asset_read[0]['asset_ids'])
-        valid_asset_ids = set(self._get_asset_ids(cr, uid, context))
-        asset_ids = list(unchecked_asset_ids & valid_asset_ids)
-        period_id = asset_osv._get_period(cr, uid, context=context)
-        asset_osv.depreciate(cr, uid, asset_ids, period_id, context=context)
+        wizards = self.browse(cr, uid, ids, context=context)
+
+        for wizard in wizards:
+            period = wizard.period_id
+            if(period.state == 'done'):
+                pattern = _(u"The period {0} is closed.")
+                raise osv.except_osv(_(u"Error!"), pattern.format(period.name))
+            unchecked_ids = [asset.id for asset in wizard.asset_ids]
+            domain = self._get_asset_domain(cr, uid, period.id, context)
+            domain.append(('id', 'in', unchecked_ids))
+            assets = asset_osv.search(cr, uid, domain, context=context)
+            asset_osv.depreciate(cr, uid, assets, period.id, context=context)
