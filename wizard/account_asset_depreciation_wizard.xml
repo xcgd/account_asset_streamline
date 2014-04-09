@@ -20,7 +20,8 @@
                     </group>
                 </group>
                 <group>
-            	   <field name="asset_ids" domain="[('id', 'in', [])]" />
+            	   <field name="asset_ids" nolabel="1" domain="[('id', 'in', [])]"
+            	       context="{'tree_view_ref' : 'account_asset_streamline.view_account_asset_asset_tree'}" />
             	</group>
             </form>
         </field>
