@@ -5,6 +5,7 @@ import time
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
 from openerp.tools.translate import _
+import calendar
 import openerp.addons.decimal_precision as dp
 import psycopg2
 
@@ -277,9 +278,10 @@ class account_asset_asset_streamline(osv.Model):
         else:
             end_date = datetime.strptime(asset.method_end, "%Y-%m-%d").date()
             start_date = period_start if period_start > srv_date else srv_date
+            limit = min(30, calendar.monthrange(end_date.year, end_date.month))
             nb_months = end_date.month - start_date.month
             nb_months += (end_date.year - start_date.year) * 12
-            nb_days = min(30, end_date.day) - min(30, start_date.day)
+            nb_days = min(limit, end_date.day) - min(limit, start_date.day) + 1
             nb_days += nb_months * 30
 
         return nb_days
