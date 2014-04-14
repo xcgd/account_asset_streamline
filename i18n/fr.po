@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OpenERP Server 7.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-04-09 08:31+0000\n"
-"PO-Revision-Date: 2014-04-09 11:12+0200\n"
+"POT-Creation-Date: 2014-04-14 13:56+0000\n"
+"PO-Revision-Date: 2014-04-14 15:57+0200\n"
 "Last-Translator: Jérémie Gavrel <jeremie.gavrel@xcg-consulting.fr>\n"
 "Language-Team: \n"
 "Language: fr\n"
@@ -116,7 +116,7 @@ msgid "The period {0} is closed."
 msgstr "La périoiode {0} est fermée."
 
 #. module: account_asset_streamline
-#: code:addons/account_asset_streamline/model/account_asset.py:24
+#: code:addons/account_asset_streamline/model/account_asset.py:28
 #: code:addons/account_asset_streamline/wizard/account_asset_change_values.py:55
 #: code:addons/account_asset_streamline/wizard/account_asset_depreciation_wizard.py:106
 #, python-format
@@ -152,6 +152,11 @@ msgstr "Nouveau montant"
 #: field:account.asset.asset,depreciation_initial:0
 msgid "Initial Depreciation"
 msgstr "Amortissement initial"
+
+#. module: account_asset_streamline
+#: view:account.asset.asset:0
+msgid "Reopen"
+msgstr "Rouvrir"
 
 #. module: account_asset_streamline
 #: help:account.asset.asset,message_summary:0
@@ -228,7 +233,7 @@ msgid "Depreciation Period"
 msgstr "Période d'amortissement"
 
 #. module: account_asset_streamline
-#: code:addons/account_asset_streamline/model/account_asset.py:146
+#: code:addons/account_asset_streamline/model/account_asset.py:148
 #, python-format
 msgid "Projected Correction"
 msgstr "Correction prévue"
@@ -278,7 +283,7 @@ msgid "sold"
 msgstr "Vendu"
 
 #. module: account_asset_streamline
-#: code:addons/account_asset_streamline/model/account_asset.py:834
+#: code:addons/account_asset_streamline/model/account_asset.py:896
 #, python-format
 msgid "Mensual {type} of Asset {ref}"
 msgstr "{type} mensuel de l'immobilisation {ref}"
@@ -312,7 +317,7 @@ msgid "Invoices"
 msgstr "Factures"
 
 #. module: account_asset_streamline
-#: code:addons/account_asset_streamline/model/account_asset.py:818
+#: code:addons/account_asset_streamline/model/account_asset.py:878
 #, python-format
 msgid "Correction"
 msgstr "Correction"
@@ -376,7 +381,7 @@ msgid "Destroyed"
 msgstr "Destruction"
 
 #. module: account_asset_streamline
-#: code:addons/account_asset_streamline/model/account_asset.py:797
+#: code:addons/account_asset_streamline/model/account_asset.py:856
 #, python-format
 msgid "Missed Depreciation"
 msgstr "Amortissement non effectué"
@@ -434,7 +439,7 @@ msgid "Invalid value type."
 msgstr "Type de valeur invalide."
 
 #. module: account_asset_streamline
-#: code:addons/account_asset_streamline/model/account_asset.py:148
+#: code:addons/account_asset_streamline/model/account_asset.py:150
 #, python-format
 msgid "Projected Depreciation"
 msgstr "Amortissement prévu"
@@ -471,7 +476,7 @@ msgid "Calculated End Date"
 msgstr "Date de fin prévue"
 
 #. module: account_asset_streamline
-#: code:addons/account_asset_streamline/model/account_asset.py:16
+#: code:addons/account_asset_streamline/model/account_asset.py:20
 #, python-format
 msgid "No period was found after the month: {month}/{year}. You may need to create the missing periods."
 msgstr ""
@@ -612,7 +617,7 @@ msgid "Asset category"
 msgstr "Catégorie d'immobilisation"
 
 #. module: account_asset_streamline
-#: code:addons/account_asset_streamline/model/account_asset.py:820
+#: code:addons/account_asset_streamline/model/account_asset.py:880
 #, python-format
 msgid "Depreciation"
 msgstr "Amortissement"
@@ -681,12 +686,6 @@ msgstr "Code Analyse 3"
 #: field:account.asset.asset,a1_id:0
 msgid "Analysis Code 1"
 msgstr "Code Analyse 1"
-
-#, python-format
-#~ msgid "No period was found after the date: {0}. You may need to create them."
-#~ msgstr ""
-#~ "Aucune période n'a été trouvée après la date: {0}. Vous devez les créer si "
-#~ "besoin."
 
 #. module: account_asset
 #: field:account.asset.asset,purchase_value:0

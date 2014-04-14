@@ -3,9 +3,12 @@ from openerp.tools.translate import _
 
 
 class account_asset_depreciation_wizard(osv.TransientModel):
+    """Order the depreciation of a selection of assets for a given period"""
+
     _name = 'account.asset.depreciation.wizard'
 
     def _get_asset_domain(self, cr, uid, period_id, context=None):
+        """Return the domain of every depreciable asset in the period."""
 
         if period_id is False:
             return [('id', 'in', [])]
@@ -33,6 +36,7 @@ class account_asset_depreciation_wizard(osv.TransientModel):
         ]
 
     def _get_default_period(self, cr, uid, context=None):
+        """Return the current period as default value for the period field."""
         asset_osv = self.pool.get('account.asset.asset')
         period_osv = self.pool.get('account.period')
         period_id = asset_osv._get_period(cr, uid, context=context)
@@ -74,6 +78,7 @@ class account_asset_depreciation_wizard(osv.TransientModel):
     }
 
     def onchange_period(self, cr, uid, ids, period_id, context=None):
+        """Adapt the asset selection and domain to the new selected period."""
 
         domain = self._get_asset_domain(cr, uid, period_id, context=context)
         asset_osv = self.pool.get('account.asset.asset')
@@ -84,6 +89,7 @@ class account_asset_depreciation_wizard(osv.TransientModel):
         }
 
     def auto_select(self, cr, uid, ids, auto, period_id, context=None):
+        """Allow the selection or deselection of all assets."""
 
         res = {'auto': False}
         if auto == 'none':
@@ -95,6 +101,7 @@ class account_asset_depreciation_wizard(osv.TransientModel):
         return {'value': res}
 
     def depreciate_assets(self, cr, uid, ids, context=None):
+        """Check, then order the depreciation of the selected assets."""
 
         asset_osv = self.pool.get('account.asset.asset')
         wizards = self.browse(cr, uid, ids, context=context)
@@ -109,3 +116,5 @@ class account_asset_depreciation_wizard(osv.TransientModel):
             domain.append(('id', 'in', unchecked_ids))
             assets = asset_osv.search(cr, uid, domain, context=context)
             asset_osv.depreciate(cr, uid, assets, period.id, context=context)
+
+        return {'type': 'ir.actions.act_window_close'}

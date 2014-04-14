@@ -5,6 +5,7 @@ from openerp.osv import fields, osv
 
 
 class asset_suspend(osv.TransientModel):
+    """Prompt the user to select a reason for the suspension of an asset."""
 
     _name = 'asset.suspend'
     _description = 'Suspend Asset'
@@ -17,6 +18,7 @@ class asset_suspend(osv.TransientModel):
     }
 
     def modify(self, cr, uid, ids, context=None):
+        """Suspend the asset."""
 
         if not context:
             context = {}

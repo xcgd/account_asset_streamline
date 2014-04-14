@@ -14,7 +14,9 @@
                 <xpath expr="//button[@name='set_to_close']" position="replace">
                     <button name="%(action_asset_close)d" states="open" string="Set to Close" groups="account.group_account_manager"
                         type="action" class="oe_highlight" context="{'default_currency_id': currency_id}" />
-                    <button name="reactivate" states="suspended,close" string="Reactivate" type="object"
+                    <button name="reactivate" states="suspended" string="Reactivate" type="object"
+                        groups="account.group_account_manager" class="oe_highlight" />
+                    <button name="reopen" states="close" string="Reopen" type="object"
                         groups="account.group_account_manager" class="oe_highlight" />
                     <button name="%(action_asset_suspend)d" states="open" string="Suspend" groups="account.group_account_manager"
                         type="action" />

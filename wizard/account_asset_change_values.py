@@ -7,6 +7,7 @@ import openerp.addons.decimal_precision as dp
 
 
 class asset_modify_values(osv.TransientModel):
+    """Change the gross, salvage and manual depreciation values of an asset."""
 
     _name = 'asset.modify.values'
     _description = 'Modify Asset Values'
@@ -34,6 +35,7 @@ class asset_modify_values(osv.TransientModel):
     }
 
     def modify(self, cr, uid, ids, context=None):
+        """Apply the modification to the selected value."""
 
         if not context:
             context = {}

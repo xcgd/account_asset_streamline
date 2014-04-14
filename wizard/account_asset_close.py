@@ -6,6 +6,7 @@ import openerp.addons.decimal_precision as dp
 
 
 class asset_close(osv.TransientModel):
+    """Prompt the user to select a reason for the closure of an asset."""
 
     _name = 'asset.close'
     _description = 'Close Asset'
@@ -36,6 +37,7 @@ class asset_close(osv.TransientModel):
     }
 
     def modify(self, cr, uid, ids, context=None):
+        """Close the asset."""
 
         if not context:
             context = {}
