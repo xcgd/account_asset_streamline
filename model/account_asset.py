@@ -721,6 +721,29 @@ class account_asset_asset_streamline(osv.Model):
         'service_date': lambda *a: time.strftime('%Y-%m-%d'),
     }
 
+    _sql_constraints = [
+        (
+            'check_purchase_value',
+            'CHECK(purchase_value > 0)',
+            _(u"The purchase value must be greater than 0."),
+        ),
+        (
+            'check_min_session_count',
+            'CHECK(method_time != \'number\' or method_number > 0)',
+            _(u"The number of depreciations must be greater than 0."),
+        ),
+        (
+            'check_end_date',
+            'CHECK(method_time != \'end\' or method_end >= service_date)',
+            _(u"The depreciation end date cannot be before the service date."),
+        ),
+        (
+            'check_service_date',
+            'CHECK(service_date >= purchase_date)',
+            _(u"The put-into-service date cannot be before the purchase date.")
+        ),
+    ]
+
     def copy(self, cr, uid, ids, default=None, context=None):
         """Switch the copy back to the draft state. Clear all fields that can
         only be initialized or changed while the asset is active."""
@@ -734,7 +757,7 @@ class account_asset_asset_streamline(osv.Model):
         default['depreciation_manual'] = 0
         default['theoretical_depreciation'] = 0
         default['depreciation_auto'] = 0
-        default['last_depreciation_period'] = None,
+        default['last_depreciation_period'] = None
         default['depreciation_line_ids'] = False
         default['account_move_line_ids'] = False
         default['history_ids'] = False
@@ -758,19 +781,23 @@ class account_asset_asset_streamline(osv.Model):
 
     def reactivate(self, cr, uid, ids, context=None):
         """Change state from Suspended to Open."""
+        vals = {'state': 'open', 'suspension_reason': None}
         assets = self.browse(cr, uid, ids, context=context)
         for asset in assets:
             if asset.state == 'suspended':
-                vals = {'state': 'open'}
-                self.write(cr, uid, ids, vals, context=context)
+                self.write(cr, uid, asset.id, vals.copy(), context=context)
+            else:
+                raise osv.except_osv(_(u"Error!"), u"Asset must be suspended.")
 
     def reopen(self, cr, uid, ids, context=None):
         """Change state from Suspended to Open."""
+        vals = {'state': 'open', 'disposal_reason': None, 'disposal_value': 0}
         assets = self.browse(cr, uid, ids, context=context)
         for asset in assets:
             if asset.state == 'close':
-                vals = {'state': 'open'}
-                self.write(cr, uid, ids, vals, context=context)
+                self.write(cr, uid, asset.id, vals.copy(), context=context)
+            else:
+                raise osv.except_osv(_(u"Error!"), u"Asset must be closed.")
 
     def onchange_category_id(self, cr, uid, ids, category_id, context=None):
         """Unused. Override the method defined in the parent class."""
