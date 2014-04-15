@@ -787,7 +787,7 @@ class account_asset_asset_streamline(osv.Model):
             if asset.state == 'suspended':
                 self.write(cr, uid, asset.id, vals.copy(), context=context)
             else:
-                raise osv.except_osv(_(u"Error!"), u"Asset must be suspended.")
+                raise osv.except_osv(_(u"Error!"), _(u"Must be suspended."))
 
     def reopen(self, cr, uid, ids, context=None):
         """Change state from Suspended to Open."""
@@ -797,7 +797,7 @@ class account_asset_asset_streamline(osv.Model):
             if asset.state == 'close':
                 self.write(cr, uid, asset.id, vals.copy(), context=context)
             else:
-                raise osv.except_osv(_(u"Error!"), u"Asset must be closed.")
+                raise osv.except_osv(_(u"Error!"), _(u"Asset must be closed."))
 
     def onchange_category_id(self, cr, uid, ids, category_id, context=None):
         """Unused. Override the method defined in the parent class."""
