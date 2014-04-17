@@ -34,6 +34,14 @@ class account_asset_category_streamline(osv.Model):
     _name = 'account.asset.category'
     _inherit = 'account.asset.category'
 
+    _columns = {
+        'account_disposal_id': fields.many2one(
+            'account.account',
+            'Asset Disposal Account',
+            required=True
+        ),
+    }
+
     _defaults = {
         'method_period': 1,
     }
@@ -64,6 +72,7 @@ class account_asset_asset_streamline(osv.Model):
         for asset in assets:
 
             asset_id = asset.id
+            salvage = asset.adjusted_salvage_value
             line_ids[asset_id] = []
             sequence = asset.depreciation_line_sequence
             if asset.method_time == 'end':
@@ -81,6 +90,10 @@ class account_asset_asset_streamline(osv.Model):
             old_ids = line_osv.search(cr, uid, old_domain, context=context)
             if old_ids:
                 line_osv.unlink(cr, uid, old_ids, context=context)
+
+            # If the asset is closed, skip it after deleting the lines.
+            if asset.state == 'close':
+                continue
 
             # This dictionary's role is to keep the asset's projected field
             # values throughout the simulation. Its values are updated after
@@ -115,9 +128,9 @@ class account_asset_asset_streamline(osv.Model):
             except (psycopg2.ProgrammingError, IndexError):
                 raise period_error(previous_date)
 
-            # For the current asset, loop on the periods until the NBV is 0 AND
-            # the current period starts after the depreciation's end date.
-            while period_start <= end or vals['net_book_value']:
+            # For the current asset, loop on periods until NBV = salvage value
+            # AND the current period starts after the depreciation's end date.
+            while period_start <= end or vals['net_book_value'] != salvage:
 
                 # If the period returned is special, try to get a non-special
                 # period with the same start date.
@@ -216,9 +229,8 @@ class account_asset_asset_streamline(osv.Model):
         res = {}
         for asset in assets:
             gross_value = asset.adjusted_gross_value
-            salvage_value = asset.adjusted_salvage_value
             depreciations = asset.depreciation_total
-            res[asset.id] = gross_value - salvage_value - depreciations
+            res[asset.id] = gross_value - depreciations
 
         return res
 
@@ -313,6 +325,7 @@ class account_asset_asset_streamline(osv.Model):
         period_start = datetime.strptime(period.date_start, "%Y-%m-%d").date()
         period_stop = datetime.strptime(period.date_stop, "%Y-%m-%d").date()
         srv_start = datetime.strptime(asset.service_date, "%Y-%m-%d").date()
+        salvage_value = asset.adjusted_salvage_value
         # If the asset isn't in service, no depreciation should be generated.
         if period_stop < srv_start:
             return
@@ -323,13 +336,13 @@ class account_asset_asset_streamline(osv.Model):
 
         remaining_days = self._calculate_days(asset, period_start=period_start)
 
-        # If the depreciation is supposed to be over but the NBV is not 0,
-        # we just have to rectify it with a correction line.
-        if remaining_days <= 0 and vals['net_book_value'] != 0:
-            correction = vals['net_book_value']
+        # If the depreciation is supposed to be over but the NBV isn't equal to
+        # the salvage value. we just have to rectify it with a correction line.
+        if remaining_days <= 0 and vals['net_book_value'] != salvage_value:
+            correction = vals['net_book_value'] - salvage_value
             vals['depreciation_auto'] += correction
             vals['depreciation_total'] += correction
-            vals['net_book_value'] = 0
+            vals['net_book_value'] = salvage_value
             yield {'type': 'correction', 'amount': correction, 'vals': vals}
             return
 
@@ -363,12 +376,13 @@ class account_asset_asset_streamline(osv.Model):
             # NB: Periods, including the first period, can always be missed.
             depr_days = self._nb_days_in_interval(srv_start, period_stop)
 
+        to_be_depreciated = vals['net_book_value'] - salvage_value
         # Calculate the depreciation amount and update the asset's values.
-        daily_depreciation = vals['net_book_value'] / remaining_days
+        daily_depreciation = to_be_depreciated / remaining_days
         if remaining_days > depr_days:
             depreciation = daily_depreciation * depr_days
         else:  # Last depreciation period, nullify NBV to end the depreciation.
-            depreciation = vals['net_book_value']
+            depreciation = to_be_depreciated
         vals['depreciation_total'] += depreciation
         vals['depreciation_auto'] += depreciation
         vals['net_book_value'] -= depreciation
@@ -383,12 +397,30 @@ class account_asset_asset_streamline(osv.Model):
         yield {'type': 'depreciation', 'amount': depreciation, 'vals': vals}
         return
 
-    _gross_cols = ['purchase_value', 'additional_value']
+    def _generate_balanced_lines(self, account1, account2, amount, base_vals):
+        """Complete the field values account_id, credit and debit for two lines
+        that are meant to balance each other.
+        If amount is positive, credit the first account of its absolute value
+        and debit the second one of the same. If negative, do the opposite.
+        """
+
+        # Convert amount to credit and debit, one positive, the other 0
+        (credit, debit) = [0 if i < 0 else i for i in [amount, -amount]]
+        # Prepare the two move lines.
+        for account in (account1, account2):
+            vals = base_vals.copy()
+            vals.update(account_id=account.id, credit=credit, debit=debit)
+            yield vals
+            # Swap the credit and debit values for the second line.
+            (credit, debit) = (debit, credit)
+
+    _gross_cols = ['purchase_value', 'additional_value', 'gross_disposal']
     _salvage_cols = ['salvage_value', 'salvage_adjust']
     _depreciation_cols = [
         'depreciation_initial',
         'depreciation_auto',
-        'depreciation_manual'
+        'depreciation_manual',
+        'depreciation_disposal',
     ]
 
     _states = [
@@ -417,6 +449,11 @@ class account_asset_asset_streamline(osv.Model):
         ),
         'additional_value': fields.float(
             u"Additional Value",
+            readonly=True,
+            digits_compute=dp.get_precision('Account'),
+        ),
+        'gross_disposal': fields.float(
+            u"Disposed Asset",
             readonly=True,
             digits_compute=dp.get_precision('Account'),
         ),
@@ -471,6 +508,11 @@ class account_asset_asset_streamline(osv.Model):
             readonly=True,
             digits_compute=dp.get_precision('Account'),
         ),
+        'depreciation_disposal': fields.float(
+            u"Disposed Asset",
+            readonly=True,
+            digits_compute=dp.get_precision('Account'),
+        ),
         'depreciation_total': fields.function(
             lambda s, *a: s._sum(s._depreciation_cols, *a),
             type='float',
@@ -494,7 +536,7 @@ class account_asset_asset_streamline(osv.Model):
             store={
                 'account.asset.asset': (
                     lambda self, cr, uid, ids, c={}: ids,
-                    _gross_cols + _salvage_cols + _depreciation_cols,
+                    _gross_cols + _depreciation_cols,
                     20
                 ),
             },
@@ -548,6 +590,11 @@ class account_asset_asset_streamline(osv.Model):
         ),
         'disposal_value': fields.integer(
             u"Disposal Value",
+            readonly=True,
+        ),
+        'disposal_period': fields.many2one(
+            "account.period",
+            u"Disposal Period",
             readonly=True,
         ),
         'last_depreciation_period': fields.many2one(
@@ -717,6 +764,8 @@ class account_asset_asset_streamline(osv.Model):
 
     _defaults = {
         'depreciation_line_sequence': 0,
+        'gross_disposal': 0.0,
+        'depreciation_disposal': 0.0,
         'method_period': 1,
         'service_date': lambda *a: time.strftime('%Y-%m-%d'),
     }
@@ -753,8 +802,10 @@ class account_asset_asset_streamline(osv.Model):
 
         default['state'] = 'draft'
         default['additional_value'] = 0
+        default['gross_disposal'] = 0
         default['salvage_adjust'] = 0
         default['depreciation_manual'] = 0
+        default['depreciation_disposal'] = 0
         default['theoretical_depreciation'] = 0
         default['depreciation_auto'] = 0
         default['last_depreciation_period'] = None
@@ -788,16 +839,6 @@ class account_asset_asset_streamline(osv.Model):
                 self.write(cr, uid, asset.id, vals.copy(), context=context)
             else:
                 raise osv.except_osv(_(u"Error!"), _(u"Must be suspended."))
-
-    def reopen(self, cr, uid, ids, context=None):
-        """Change state from Suspended to Open."""
-        vals = {'state': 'open', 'disposal_reason': None, 'disposal_value': 0}
-        assets = self.browse(cr, uid, ids, context=context)
-        for asset in assets:
-            if asset.state == 'close':
-                self.write(cr, uid, asset.id, vals.copy(), context=context)
-            else:
-                raise osv.except_osv(_(u"Error!"), _(u"Asset must be closed."))
 
     def onchange_category_id(self, cr, uid, ids, category_id, context=None):
         """Unused. Override the method defined in the parent class."""
@@ -844,8 +885,8 @@ class account_asset_asset_streamline(osv.Model):
 
         return res
 
-    def depreciate(self, cr, uid, ids, period_id, context=None):
-        """Execute the depreciation of assets."""
+    def depreciate(self, cr, uid, ids, period_id, final=False, context=None):
+        """Perform the depreciation of assets."""
 
         line_osv = self.pool.get('account.asset.depreciation.line')
         period_osv = self.pool.get('account.period')
@@ -860,16 +901,21 @@ class account_asset_asset_streamline(osv.Model):
         assets = self.browse(cr, uid, ids, context=context)
         for asset in assets:
 
+            # If the depreciation has not begun, skip the asset.
+            if period.date_stop < asset.service_date:
+                continue
+
             sequence = asset.depreciation_line_sequence
             vals = {}
 
-            # Before the actual depreciation, we must create the missing lines
             if asset.last_depreciation_period:
                 last_period_end = asset.last_depreciation_period.date_stop
             else:
                 split_service_date = asset.service_date.split('-')
                 year, month = [int(x) for x in split_service_date[0:2]]
                 last_period_end = date(year, month, 1) - relativedelta(days=1)
+
+            # Before the actual depreciation, we must create the missing lines
             miss_domain = [
                 ('date_start', '>', last_period_end),
                 ('date_stop', '<', period.date_start),
@@ -902,9 +948,15 @@ class account_asset_asset_streamline(osv.Model):
                     continue
 
                 if depreciation['type'] == 'correction':
-                    type_str = _(u"Correction")
+                    if final:
+                        type_str = _(u"Disposal Correction")
+                    else:
+                        type_str = _(u"Correction")
                 else:
-                    type_str = _(u"Depreciation")
+                    if final:
+                        type_str = _(u"Disposal Depreciation")
+                    else:
+                        type_str = _(u"Depreciation")
 
                 # Create the move entry.
                 journal_id = asset.category_id.journal_id.id
@@ -923,7 +975,7 @@ class account_asset_asset_streamline(osv.Model):
                 line_name = _(u"Mensual {type} of Asset {ref}").format(
                     type=type_str, ref=line_ref
                 )
-                line_vals_base = {
+                line_base_vals = {
                     'asset_id': asset.id,
                     'move_id': move_id,
                     'period_id': period_id,
@@ -941,23 +993,19 @@ class account_asset_asset_streamline(osv.Model):
                 for field_order in analytic_fields:
                     line_field = "a{0}_id".format(field_order)
                     asset_field = "t{0}_id".format(field_order)
-                    line_vals_base[line_field] = getattr(asset, asset_field).id
+                    line_base_vals[line_field] = getattr(asset, asset_field).id
 
                 # If the depreciation amount is positive, add a credit line to
                 # the stocks account and a debit line to the expense account.
                 # If it is negative, do the opposite.
                 stocks_acc = asset.category_id.account_depreciation_id
                 expense_acc = asset.category_id.account_expense_depreciation_id
-                # Convert amount to credit and debit, one positive, the other 0
-                (cre, deb) = [0 if i < 0 else i for i in [amount, -amount]]
-                # Prepare the two move lines.
-                for acc in (stocks_acc, expense_acc):
-                    line_vals = line_vals_base.copy()
-                    line_vals.update(account_id=acc.id, credit=cre, debit=deb)
+                line_vals_iter = self._generate_balanced_lines(
+                    stocks_acc, expense_acc, amount, line_base_vals
+                )
+                for line_vals in line_vals_iter:
                     move_line_osv.create(cr, uid, line_vals, context=context)
-                    # Swap the credit and debit values for the expense line.
-                    (cre, deb) = (deb, cre)
-                # Write the move lines.
+                # Post the move.
                 move_osv.write(
                     cr, uid, [move_id], {'state': 'posted'}, context=context
                 )
@@ -988,6 +1036,103 @@ class account_asset_asset_streamline(osv.Model):
     def depreciate_move(self, cr, uid, ids, depreciation_value, context=None):
         """Unused. Override the method defined in the parent class."""
         pass
+
+    def dispose(self, cr, uid, ids, period_id, reason, value=0, context=None):
+        """Perform the disposal of assets"""
+
+        period_osv = self.pool.get('account.period')
+        move_osv = self.pool.get('account.move')
+        move_line_osv = self.pool.get('account.move.line')
+        analytic_osv = self.pool.get('analytic.structure')
+        period = period_osv.browse(cr, uid, period_id, context=context)
+        today = date.today()
+        today_str = datetime.strftime(today, '%Y-%m-%d')
+
+        # Depreciate the assets for the period
+        self.depreciate(cr, uid, ids, period_id, final=True, context=context)
+
+        # Iterate for every asset.
+        assets = self.browse(cr, uid, ids, context=context)
+        for asset in assets:
+
+            # Create the move entry.
+            journal_id = asset.category_id.journal_id.id
+            move_vals = {
+                'name': asset.name,
+                'date': today_str,
+                'ref': _(u"Gross Value Disposal"),
+                'period_id': period_id,
+                'journal_id': journal_id,
+                'state': 'draft'
+            }
+            gross = move_osv.create(cr, uid, move_vals, context=context)
+
+            # Prepare the values shared between the move lines.
+            line_ref = u"{0} / {1}".format(asset.name, period.name)
+            line_name = _(u"Disposal of Asset {ref}").format(ref=line_ref)
+            line_base_vals = {
+                'asset_id': asset.id,
+                'move_id': gross,
+                'period_id': period_id,
+                'journal_id': journal_id,
+                'ref': line_ref,
+                'partner_id': uid,
+                'date': today_str,
+                'name': line_name,
+                'currency_id': asset.currency_id.id,
+            }
+            # Prepare the analytic field values.
+            analytic_fields = analytic_osv.get_dimensions_names(
+                cr, uid, 'account_move_line', context=context
+            )
+            for field_order in analytic_fields:
+                line_field = "a{0}_id".format(field_order)
+                asset_field = "t{0}_id".format(field_order)
+                line_base_vals[line_field] = getattr(asset, asset_field).id
+
+            # If the total gross value is positive, add a credit line to
+            # the asset account and a debit line to the disposal account.
+            # If it is negative, do the opposite.
+            gross_amount = asset.adjusted_gross_value
+            asset_acc = asset.category_id.account_asset_id
+            disposal_acc = asset.category_id.account_disposal_id
+            line_vals_iter = self._generate_balanced_lines(
+                asset_acc, disposal_acc, gross_amount, line_base_vals
+            )
+            for line_vals in line_vals_iter:
+                move_line_osv.create(cr, uid, line_vals, context=context)
+
+            # Do the same for the depreciation transfer lines.
+            move_vals['ref'] = _(u"Depreciation Value Disposal")
+            depr = move_osv.create(cr, uid, move_vals, context=context)
+            line_base_vals['move_id'] = depr
+            stocks_acc = asset.category_id.account_depreciation_id
+            depr_amount = - asset.depreciation_total
+            line_vals_iter = self._generate_balanced_lines(
+                stocks_acc, disposal_acc, depr_amount, line_base_vals
+            )
+            for line_vals in line_vals_iter:
+                move_line_osv.create(cr, uid, line_vals, context=context)
+
+            # Post the moves.
+            move_osv.write(
+                cr, uid, [gross, depr], {'state': 'posted'}, context=context
+            )
+
+            # Update the asset's values for the disposal.
+            asset_vals = {
+                'state': 'close',
+                'disposal_date': time.strftime('%Y-%m-%d'),
+                'disposal_reason': reason,
+                'disposal_value': value if reason == 'sold' else 0,
+                'disposal_period': period_id,
+                'gross_disposal': - gross_amount,
+                'depreciation_disposal': depr_amount,
+            }
+            self.write(cr, uid, [asset.id], asset_vals, context=context)
+
+        # Delete the projected depreciation board.
+        self.compute_depreciation_board(cr, uid, ids, context=context)
 
 
 class account_asset_values_history(osv.Model):

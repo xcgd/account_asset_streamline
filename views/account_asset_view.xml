@@ -13,13 +13,11 @@
                 </xpath>
                 <xpath expr="//button[@name='set_to_close']" position="replace">
                     <button name="%(action_asset_close)d" states="open" string="Set to Close" groups="account.group_account_manager"
-                        type="action" class="oe_highlight" context="{'default_currency_id': currency_id}" />
+                        type="action" class="oe_highlight" context="{'default_asset_id': id, 'start_date': service_date}" />
                     <button name="reactivate" states="suspended" string="Reactivate" type="object"
                         groups="account.group_account_manager" class="oe_highlight" />
-                    <button name="reopen" states="close" string="Reopen" type="object"
-                        groups="account.group_account_manager" class="oe_highlight" />
                     <button name="%(action_asset_suspend)d" states="open" string="Suspend" groups="account.group_account_manager"
-                        type="action" />
+                        context="{'default_asset_id': id}" type="action" />
                 </xpath>
                 <xpath expr="//field[@name='code']" position="replace">
                     <field name="description" />
@@ -51,6 +49,8 @@
                             <group colspan="2">
                                 <field name="purchase_value" widget="monetary" options="{'currency_field': 'currency_id'}" />
                                 <field name="additional_value" widget="monetary" options="{'currency_field': 'currency_id'}" />
+                                <field name="gross_disposal" widget="monetary" options="{'currency_field': 'currency_id'}" 
+                                    attrs="{'invisible': [('state', '!=', 'close')]}"/>
                                 <field name="adjusted_gross_value" widget="monetary" options="{'currency_field': 'currency_id'}" />
                             </group>
                             <group colspan="2">
@@ -62,6 +62,8 @@
                                 <field name="depreciation_initial" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                 <field name="depreciation_auto" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                 <field name="depreciation_manual" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="depreciation_disposal" widget="monetary" options="{'currency_field': 'currency_id'}"
+                                    attrs="{'invisible': [('state', '!=', 'close')]}"/>
                                 <field name="depreciation_total" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                             </group>
                             <group colspan="4">
@@ -89,6 +91,7 @@
                                     <field name="disposal_value" widget="monetary" options="{'currency_field': 'currency_id'}"
                                         attrs="{'invisible':[('disposal_reason', '!=', 'sold')]}"
                                     />
+                                    <field name="disposal_period"/>
                                 </group>
                             </group>
                             <group string="Method" colspan="2">
@@ -195,6 +198,9 @@
                 </xpath>
                 <xpath expr="//group[@string='Depreciation Method']" position="attributes">
                     <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//field[@name='account_expense_depreciation_id']" position="after">
+                    <field name="account_disposal_id" />
                 </xpath>
             </data>
         </field>
