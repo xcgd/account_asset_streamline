@@ -193,6 +193,10 @@ class account_asset_asset_streamline(osv.Model):
 
         return line_ids
 
+    def _get_sequence(self, cr, uid, context=None):
+        sequence_osv = self.pool.get('ir.sequence')
+        return sequence_osv.get(cr, uid, 'asset', context=context)
+
     def _get_method_end(self, cr, uid, ids, field_name, args, context=None):
         """Compute the end date from the number of depreciations."""
 
@@ -780,6 +784,7 @@ class account_asset_asset_streamline(osv.Model):
     }
 
     _defaults = {
+        'name': _get_sequence,
         'depreciation_line_sequence': 0,
         'gross_disposal': 0.0,
         'depreciation_disposal': 0.0,
@@ -807,6 +812,11 @@ class account_asset_asset_streamline(osv.Model):
             'check_service_date',
             'CHECK(service_date >= purchase_date)',
             _(u"The put-into-service date cannot be before the purchase date.")
+        ),
+        (
+            'check_name',
+            'UNIQUE(name)',
+            _(u"The asset's name must be unique.")
         ),
     ]
 

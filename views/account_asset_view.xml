@@ -123,11 +123,11 @@
                                 <field name="a5_id" />
                             </group>
                             <group string="Transaction Management">
-                                <field name="t1_id" />
-                                <field name="t2_id" />
-                                <field name="t3_id" />
-                                <field name="t4_id" />
-                                <field name="t5_id" />
+                                <field name="t1_id" required="1" />
+                                <field name="t2_id" required="1" />
+                                <field name="t3_id" required="1" />
+                                <field name="t4_id" required="1" />
+                                <field name="t5_id" required="1" />
                             </group>
                         </group>
                     </page>
