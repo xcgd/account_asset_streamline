@@ -1,6 +1,8 @@
 # -*- encoding: utf-8 -*-
 
 from openerp.osv import fields, osv
+import time
+from openerp.tools.translate import _
 import openerp.addons.decimal_precision as dp
 
 
@@ -22,12 +24,16 @@ class asset_close(osv.TransientModel):
             return period_id
 
     _columns = {
-        'service_date': fields.related(
+        'asset_id': fields.many2one(
             'account.asset.asset',
-            'service_date',
-            string='Service Date',
-            type='date',
-            readonly=True
+            'Asset',
+            required=True,
+            readonly=True,
+        ),
+        'currency_id': fields.many2one(
+            'res.currency',
+            'Currency',
+            readonly=True,
         ),
         'disposal_reason': fields.selection(
             [
@@ -46,38 +52,67 @@ class asset_close(osv.TransientModel):
             required=True,
             digits_compute=dp.get_precision('Account'),
         ),
-        'disposal_period': fields.many2one(
+        'action_date': fields.date(
+            'Disposal Date',
+            required=True,
+        ),
+        'period_id': fields.many2one(
             'account.period',
             'Disposal Period',
             required=True,
         ),
-        'currency_id': fields.many2one(
-            'res.currency',
-            'Currency',
-            readonly=True,
-        ),
     }
 
     _defaults = {
-        'disposal_period': _get_default_period,
+        'action_date': lambda *a: time.strftime('%Y-%m-%d'),
     }
 
     def modify(self, cr, uid, ids, context=None):
         """Close the asset."""
 
-        if not context:
-            context = {}
-
-        asset_obj = self.pool.get('account.asset.asset')
-        asset_id = context.get('active_id', False)
+        asset_osv = self.pool.get('account.asset.asset')
         data = self.browse(cr, uid, ids[0], context=context)
 
-        asset_obj.dispose(
-            cr, uid, [asset_id], data.disposal_period.id, data.disposal_reason,
-            value=data.disposal_value,
-            context=context
+        asset_osv.dispose(
+            cr, uid, [data.asset_id.id], data.action_date, data.period_id.id,
+            data.disposal_reason, data.disposal_value, context=context
         )
 
         return {'type': 'ir.actions.act_window_close'}
+
+    def onchange_date(
+        self, cr, uid, id_, action_date, period_id, asset_id, context=None
+    ):
+
+        asset_osv = self.pool.get('account.asset.asset')
+        period_osv = self.pool.get('account.period')
+        value = {}
+        warning = None
+
+        asset = asset_osv.browse(cr, uid, asset_id, context=context)
+        if action_date < asset.service_date:
+            action_date = value['action_date'] = asset.service_date
+            warning = {
+                'title': _(u"Error!"),
+                'message': _(u"Cannot dispose before the put-in-service date.")
+            }
+
+        period_domain = [
+            ('state', '!=', 'done'),
+            ('special', '!=', True),
+            ('date_stop', '>=', action_date)
+        ]
+        period_ids = period_osv.search(cr, uid, period_domain, context=context)
+        if period_ids:
+            if period_id not in period_ids:
+                value['period_id'] = period_ids[0]
+        else:
+            value['period_id'] = None
+
+        return {
+            'domain': {'period_id': period_domain},
+            'value': value,
+            'warning': warning,
+        }
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

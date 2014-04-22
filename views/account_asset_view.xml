@@ -13,7 +13,7 @@
                 </xpath>
                 <xpath expr="//button[@name='set_to_close']" position="replace">
                     <button name="%(action_asset_close)d" states="open" string="Set to Close" groups="account.group_account_manager"
-                        type="action" class="oe_highlight" context="{'default_asset_id': id, 'start_date': service_date}" />
+                        type="action" class="oe_highlight" context="{'default_asset_id': id, 'default_currency_id': currency_id}" />
                     <button name="reactivate" states="suspended" string="Reactivate" type="object"
                         groups="account.group_account_manager" class="oe_highlight" />
                     <button name="%(action_asset_suspend)d" states="open" string="Suspend" groups="account.group_account_manager"
@@ -193,14 +193,26 @@
         <field name="inherit_id" ref="account_asset.view_account_asset_category_form"/>
         <field name="arch" type="xml">
             <data>
+                <xpath expr="//form/group" position="attributes">
+                    <attribute name="col">6</attribute>
+                </xpath>
+                <xpath expr="//form/group/group[1]" position="attributes">
+                    <attribute name="colspan">2</attribute>
+                </xpath>
+                <xpath expr="//form/group/group[2]" position="attributes">
+                    <attribute name="colspan">2</attribute>
+                </xpath>
                 <xpath expr="//group[@string='Depreciation Dates']" position="attributes">
                     <attribute name="invisible">1</attribute>
                 </xpath>
                 <xpath expr="//group[@string='Depreciation Method']" position="attributes">
                     <attribute name="invisible">1</attribute>
                 </xpath>
-                <xpath expr="//field[@name='account_expense_depreciation_id']" position="after">
-                    <field name="account_disposal_id" />
+                <xpath expr="//group[@string='Depreciation Dates']" position="before">
+                    <group colspan="2">
+	                    <field name="disposal_journal_id" />
+	                    <field name="account_disposal_id" />
+                    </group>
                 </xpath>
             </data>
         </field>

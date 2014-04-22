@@ -7,12 +7,18 @@
             <field name="model">asset.close</field>
             <field name="arch" type="xml">
                 <form string="Close Asset" version="7.0">
-                    <group>
-                        <field name="disposal_period" domain="[('state', '!=', 'done'), ('special', '!=', True), ('date_stop', '>=', context.get('start_date'))]" />
-                        <field name="disposal_reason" />
-                        <field name="disposal_value" widget="monetary" options="{'currency_field': 'currency_id'}"
-                            attrs="{'invisible':[('disposal_reason', '!=', 'sold')]}" />
+                    <group cols="2">
+                        <field name="asset_id" invisible="1" />
                         <field name="currency_id" invisible="1" />
+                        <group colspan="2">
+	                           <field name="action_date" on_change='onchange_date(action_date, period_id, asset_id)' />
+	                           <field name="period_id" domain="[('state', '!=', 'done'), ('special', '!=', True)]" />
+                        </group>
+                        <group colspan="2">
+	                        <field name="disposal_reason" />
+	                        <field name="disposal_value" widget="monetary" options="{'currency_field': 'currency_id'}"
+	                            attrs="{'invisible':[('disposal_reason', '!=', 'sold')]}" />
+                        </group>
                     </group>
                     <footer>
                         <button name="modify" string="Modify" type="object" class="oe_highlight"/>
