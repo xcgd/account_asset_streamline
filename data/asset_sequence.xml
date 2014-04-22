@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate="0">
+
+        <!-- Sequences for account.voucher.sepa_batch -->
+        <record id="seq_type_asset" model="ir.sequence.type">
+            <field name="name">Asset</field>
+            <field name="code">asset</field>
+        </record>
+
+        <record id="seq_asset" model="ir.sequence">
+            <field name="name">Asset</field>
+            <field name="code">asset</field>
+            <field name="prefix">MI</field>
+            <field name="padding">5</field>
+        </record>
+    </data>
+</openerp>
