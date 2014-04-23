@@ -437,20 +437,35 @@ class account_asset_asset_streamline(osv.Model):
             # Swap the credit and debit values for the second line.
             (credit, debit) = (debit, credit)
 
-    _gross_cols = ['purchase_value', 'additional_value', 'gross_disposal']
-    _salvage_cols = ['salvage_value', 'salvage_adjust']
+    # Lists of fields used by functional fields (sum function and store value)
+    _gross_cols = [
+        'purchase_value',
+        'additional_value',
+        'gross_disposal'
+    ]
+    _salvage_cols = [
+        'salvage_value',
+        'salvage_adjust'
+    ]
     _depreciation_cols = [
         'depreciation_initial',
         'depreciation_auto',
         'depreciation_manual',
         'depreciation_disposal',
     ]
-
+    # Lists of values for selection fields
     _states = [
         ('draft', u"Draft"),
         ('open', u"Running"),
         ('suspended', u"Suspended"),
         ('close', u"Disposed"),
+    ]
+    _methods = [
+        ('linear', 'Linear'),
+    ]
+    _time_methods = [
+        ('number', 'Number of Depreciations'),
+        ('end', 'Ending Date'),
     ]
 
     _columns = {
@@ -465,6 +480,64 @@ class account_asset_asset_streamline(osv.Model):
                 "You can manually close an asset when the depreciation is " \
                 "over. If the last line of depreciation is posted, the asset "\
                 "automatically goes in that status."
+        ),
+        'category_id': fields.many2one(
+            'account.asset.category',
+            'Asset Category',
+            required=True,
+            change_default=True,
+            readonly=True,
+            track_visibility='onchange',
+            states={
+                'draft': [('readonly', False)],
+            },
+        ),
+        'method': fields.selection(
+            _methods,
+            'Computation Method',
+            required=True,
+            readonly=True,
+            track_visibility='onchange',
+            states={
+                'draft': [('readonly', False)],
+            },
+            help="Choose the method to use to compute the amount of" \
+                "depreciation lines.\n" \
+                "  * Linear: Calculated on basis of: Gross Value / Number" \
+                "of Depreciations\n",
+        ),
+        'method_time': fields.selection(
+            _time_methods,
+            'Time Method',
+            required=True,
+            readonly=True,
+            track_visibility='onchange',
+            states={
+                'draft': [('readonly', False)],
+            },
+            help="Choose the method to use to compute the dates and number" \
+                "of depreciation lines.\n"\
+                "  * Number of Depreciations: Fix the number of depreciation" \
+                "lines and the time between 2 depreciations.\n" \
+                "  * Ending Date: Choose the time between 2 depreciations" \
+                "and the date the depreciations won't go beyond."
+        ),
+        'method_number': fields.integer(
+            'Number of Depreciations',
+            readonly=True,
+            track_visibility='onchange',
+            states={
+                'draft': [('readonly', False)],
+            },
+            help="The number of depreciations needed to depreciate your asset"
+        ),
+        'method_end': fields.date(
+            'Ending Date',
+            readonly=True,
+            track_visibility='onchange',
+            states={
+                'draft': [('readonly', False)],
+            }
         ),
         'description': fields.char(
             u"Description",
