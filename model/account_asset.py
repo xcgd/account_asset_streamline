@@ -35,6 +35,24 @@ class account_asset_category_streamline(osv.Model):
     _name = 'account.asset.category'
     _inherit = 'account.asset.category'
 
+    def _check_journal_account_company(self, cr, uid, ids, context=False):
+        categories = self.browse(cr, uid, ids, context=context)
+        for category in categories:
+            company_id = category.company_id
+            for field in self._journal_account_fields:
+                if getattr(category, field).company_id != company_id:
+                    return False
+        return True
+
+    _journal_account_fields = (
+        'journal_id',
+        'account_asset_id',
+        'account_depreciation_id',
+        'account_expense_depreciation_id',
+        'disposal_journal_id',
+        'account_disposal_id'
+    )
+
     _columns = {
         'disposal_journal_id': fields.many2one(
             'account.journal',
@@ -51,6 +69,19 @@ class account_asset_category_streamline(osv.Model):
     _defaults = {
         'method_period': 1,
     }
+
+    _constraints = [
+        (
+            _check_journal_account_company,
+            u"Accounts and journals must belong to the same company as the " \
+                "category.",
+            _journal_account_fields + ('company_id',)
+        ),
+    ]
+
+    def onchange_company_id(self, cr, uid, ids, context=None):
+        value = {field: None for field in self._journal_account_fields}
+        return {'value': value}
 
 
 class account_asset_asset_streamline(osv.Model):
@@ -72,6 +103,7 @@ class account_asset_asset_streamline(osv.Model):
         line_osv = self.pool.get('account.asset.depreciation.line')
         period_osv = self.pool.get('account.period')
         today_str = time.strftime('%Y-%m-%d')
+        find_context = dict(context, account_period_prefer_normal=True)
 
         line_ids = {}  # Return value, as described in the doc string.
 
@@ -80,6 +112,8 @@ class account_asset_asset_streamline(osv.Model):
 
             asset_id = asset.id
             salvage = asset.adjusted_salvage_value
+            company_id = asset.company_id
+            find_context['company_id'] = company_id.id
             line_ids[asset_id] = []
             sequence = asset.depreciation_line_sequence
             if asset.method_time == 'end':
@@ -118,8 +152,7 @@ class account_asset_asset_streamline(osv.Model):
             if not last_period:
                 previous_date = asset.service_date
                 service_ids = period_osv.find(
-                    cr, uid, previous_date,
-                    context=dict(context, account_period_prefer_normal=True)
+                    cr, uid, previous_date, context=find_context
                 )
                 if service_ids:
                     period_id = service_ids[0]
@@ -139,17 +172,17 @@ class account_asset_asset_streamline(osv.Model):
             # AND the current period starts after the depreciation's end date.
             while period_start <= end or vals['net_book_value'] != salvage:
 
-                # If the period returned is special, try to get a non-special
-                # period with the same start date.
+                # If the period returned is special or from another company,
+                # try to get an appropriate period with the same start date.
                 try:
-                    if period.special:
+                    if period.special or period.company_id != company_id:
                         period_id = period_osv.find(cr, uid, period.date_start,
-                            dict(context, account_period_prefer_normal=True)
+                            context=find_context
                         )[0]
                         period = period_osv.browse(
                             cr, uid, period_id, context=context
                         )
-                        if period.special:
+                        if period.special or period.company_id != company_id:
                             raise period_error(period_start)
                 except (psycopg2.ProgrammingError, IndexError):
                     raise period_error(period_start)
@@ -270,6 +303,13 @@ class account_asset_asset_streamline(osv.Model):
             res[asset.id] = add
 
         return res
+
+    def _check_category_company(self, cr, uid, ids, context=False):
+        assets = self.browse(cr, uid, ids, context=context)
+        for asset in assets:
+            if asset.category_id.company_id != asset.company_id:
+                return False
+        return True
 
     def _nb_days_in_interval(self, start_date, end_date):
         """Return number of days in a time interval for accounting purposes."""
@@ -885,6 +925,14 @@ class account_asset_asset_streamline(osv.Model):
         'service_date': lambda *a: time.strftime('%Y-%m-%d'),
     }
 
+    _constraints = [
+        (
+            _check_category_company,
+            u"Asset must belong to the same company as its category.",
+            ('category_id', 'company_id')
+        ),
+    ]
+
     _sql_constraints = [
         (
             'check_purchase_value',
@@ -1028,6 +1076,15 @@ class account_asset_asset_streamline(osv.Model):
         # Iterate for every asset.
         assets = self.browse(cr, uid, ids, context=context)
         for asset in assets:
+
+            # Error if asset and period are from different companies.
+            if asset.company_id != period.company_id:
+                template = _(u"Cannot depreciate asset {asset} on {period}. " \
+                    u"This period is from a different company.")
+                raise osv.except_osv(
+                    _(u"Error!"),
+                    template.format(asset=asset.name, period=period.name)
+                )
 
             # If the depreciation has not begun, skip the asset.
             if period.date_stop < asset.service_date:

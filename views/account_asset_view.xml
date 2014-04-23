@@ -19,6 +19,10 @@
                     <button name="%(action_asset_suspend)d" states="open" string="Suspend" groups="account.group_account_manager"
                         context="{'default_asset_id': id}" type="action" />
                 </xpath>
+                <xpath expr="//field[@name='category_id']" position="attributes">
+                    <attribute name="context"><![CDATA[{'default_company_id': company_id}]]></attribute>
+                    <attribute name="domain"><![CDATA[[('company_id', '=', company_id)]]]></attribute>
+                </xpath>
                 <xpath expr="//field[@name='code']" position="replace">
                     <field name="description" />
                 </xpath>
@@ -193,26 +197,34 @@
         <field name="inherit_id" ref="account_asset.view_account_asset_category_form"/>
         <field name="arch" type="xml">
             <data>
-                <xpath expr="//form/group" position="attributes">
-                    <attribute name="col">6</attribute>
+                <xpath expr="//field[@name='company_id']" position="attributes">
+                    <attribute name="on_change"><![CDATA[onchange_company_id()]]></attribute>
                 </xpath>
-                <xpath expr="//form/group/group[1]" position="attributes">
-                    <attribute name="colspan">2</attribute>
+                <xpath expr="//field[@name='journal_id']" position="attributes">
+                    <attribute name="context"><![CDATA[{'default_company_id': company_id}]]></attribute>
+                    <attribute name="domain"><![CDATA[[('company_id', '=', company_id)]]]></attribute>
                 </xpath>
-                <xpath expr="//form/group/group[2]" position="attributes">
-                    <attribute name="colspan">2</attribute>
+                <xpath expr="//field[@name='account_asset_id']" position="attributes">
+                    <attribute name="context"><![CDATA[{'default_company_id': company_id}]]></attribute>
+                    <attribute name="domain"><![CDATA[[('company_id', '=', company_id)]]]></attribute>
+                </xpath>
+                <xpath expr="//field[@name='account_depreciation_id']" position="attributes">
+                    <attribute name="context"><![CDATA[{'default_company_id': company_id}]]></attribute>
+                    <attribute name="domain"><![CDATA[[('company_id', '=', company_id)]]]></attribute>
+                </xpath>
+                <xpath expr="//field[@name='account_expense_depreciation_id']" position="attributes">
+                    <attribute name="context"><![CDATA[{'default_company_id': company_id}]]></attribute>
+                    <attribute name="domain"><![CDATA[[('company_id', '=', company_id)]]]></attribute>
+                </xpath>
+                <xpath expr="//field[@name='account_expense_depreciation_id']" position="after">
+                    <field name="disposal_journal_id" context="{'default_company_id': company_id}" domain="[('company_id', '=', company_id)]" />
+                    <field name="account_disposal_id" context="{'default_company_id': company_id}" domain="[('company_id', '=', company_id)]" />
                 </xpath>
                 <xpath expr="//group[@string='Depreciation Dates']" position="attributes">
                     <attribute name="invisible">1</attribute>
                 </xpath>
                 <xpath expr="//group[@string='Depreciation Method']" position="attributes">
                     <attribute name="invisible">1</attribute>
-                </xpath>
-                <xpath expr="//group[@string='Depreciation Dates']" position="before">
-                    <group colspan="2">
-	                    <field name="disposal_journal_id" />
-	                    <field name="account_disposal_id" />
-                    </group>
                 </xpath>
             </data>
         </field>

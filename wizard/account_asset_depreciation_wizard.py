@@ -16,11 +16,11 @@ class account_asset_depreciation_wizard(osv.TransientModel):
         period_osv = self.pool.get('account.period')
         period = period_osv.browse(cr, uid, period_id, context)
         period_start = period.date_start
-        period_stop = period.date_stop
 
         return [
+            ('company_id', '=', period.company_id.id),
             ('state', '=', 'open'),
-            ('service_date', '<=', period_stop),
+            ('service_date', '<=', period.date_stop),
             '|',
                 ('last_depreciation_period.date_stop', '<', period_start),
                 ('last_depreciation_period', '=', False),

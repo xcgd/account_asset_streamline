@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OpenERP Server 7.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-04-23 09:27+0000\n"
-"PO-Revision-Date: 2014-04-23 11:29+0200\n"
+"POT-Creation-Date: 2014-04-23 14:18+0000\n"
+"PO-Revision-Date: 2014-04-23 16:25+0200\n"
 "Last-Translator: Jérémie Gavrel <jeremie.gavrel@xcg-consulting.fr>\n"
 "Language-Team: \n"
 "Language: fr\n"
@@ -21,6 +21,12 @@ msgstr ""
 #: field:account.asset.asset,theoretical_depreciation:0
 msgid "Theoretical Daily Depreciation"
 msgstr "Amortissement journalier théorique"
+
+#. module: account_asset_streamline
+#: view:account.asset.asset:0
+#: view:account.asset.category:0
+msgid "[('company_id', '=', company_id)]"
+msgstr "[('company_id', '=', company_id)]"
 
 #. module: account_asset_streamline
 #: view:asset.suspend:0
@@ -54,7 +60,7 @@ msgid "Auto selection"
 msgstr "Sélection automatique"
 
 #. module: account_asset_streamline
-#: code:addons/account_asset_streamline/model/account_asset.py:1044
+#: code:addons/account_asset_streamline/model/account_asset.py:1141
 #, python-format
 msgid "Disposal Correction"
 msgstr "Correction à la cession"
@@ -75,11 +81,12 @@ msgid "Unread Messages"
 msgstr "Messages non lus"
 
 #. module: account_asset_streamline
-#: view:asset.close:0
-#: view:asset.modify.values:0
-#: view:asset.suspend:0
-msgid "Modify"
-msgstr "Modifier"
+#: code:addons/account_asset_streamline/model/account_asset.py:1082
+#, python-format
+msgid "Cannot depreciate asset {asset} on {period}. This period is from a different company."
+msgstr ""
+"Impossible d'amortir l'immobilisation {asset} sur {period}. Cette période "
+"est associée à une autre société."
 
 #. module: account_asset_streamline
 #: field:account.asset.asset,depreciation_disposal:0
@@ -139,9 +146,10 @@ msgid "The period {0} is closed."
 msgstr "La périoiode {0} est fermée."
 
 #. module: account_asset_streamline
-#: code:addons/account_asset_streamline/model/account_asset.py:28
-#: code:addons/account_asset_streamline/model/account_asset.py:900
-#: code:addons/account_asset_streamline/model/account_asset.py:914
+#: code:addons/account_asset_streamline/model/account_asset.py:29
+#: code:addons/account_asset_streamline/model/account_asset.py:988
+#: code:addons/account_asset_streamline/model/account_asset.py:1002
+#: code:addons/account_asset_streamline/model/account_asset.py:1085
 #: code:addons/account_asset_streamline/wizard/account_asset_change_values.py:57
 #: code:addons/account_asset_streamline/wizard/account_asset_close.py:96
 #: code:addons/account_asset_streamline/wizard/account_asset_depreciation_wizard.py:113
@@ -155,7 +163,7 @@ msgid "Amount"
 msgstr "Montant"
 
 #. module: account_asset_streamline
-#: code:addons/account_asset_streamline/model/account_asset.py:1160
+#: code:addons/account_asset_streamline/model/account_asset.py:1257
 #, python-format
 msgid "Gross Value Disposal"
 msgstr "Transfert de la valeur brute"
@@ -193,7 +201,7 @@ msgstr ""
 "directement en format html pour être inséré dans une vue kanban."
 
 #. module: account_asset_streamline
-#: code:addons/account_asset_streamline/model/account_asset.py:914
+#: code:addons/account_asset_streamline/model/account_asset.py:1002
 #, python-format
 msgid "Must be a draft."
 msgstr "Doit être un brouillon."
@@ -239,9 +247,9 @@ msgid "Adjusted Salvage Value"
 msgstr "Valeur résiduelle"
 
 #. module: account_asset_streamline
-#: field:account.asset.asset,depreciation_auto:0
-msgid "Automatic Depreciations"
-msgstr "Amortissement automatique"
+#: field:account.asset.asset,message_follower_ids:0
+msgid "Followers"
+msgstr "Suiveurs"
 
 #. module: account_asset_streamline
 #: view:account.asset.asset:0
@@ -266,7 +274,7 @@ msgid "Depreciation Period"
 msgstr "Période d'amortissement"
 
 #. module: account_asset_streamline
-#: code:addons/account_asset_streamline/model/account_asset.py:166
+#: code:addons/account_asset_streamline/model/account_asset.py:201
 #, python-format
 msgid "Projected Correction"
 msgstr "Correction prévue"
@@ -334,14 +342,14 @@ msgid "Contract Start Date"
 msgstr "Date de début de contrat"
 
 #. module: account_asset_streamline
-#: code:addons/account_asset_streamline/model/account_asset.py:1066
+#: code:addons/account_asset_streamline/model/account_asset.py:1163
 #, python-format
 msgid "Mensual {type} of Asset {ref}"
 msgstr "{type} mensuel de l'immobilisation {ref}"
 
 #. module: account_asset_streamline
 #: sql_constraint:account.asset.asset:0
-#: code:addons/account_asset_streamline/model/account_asset.py:817
+#: code:addons/account_asset_streamline/model/account_asset.py:940
 #, python-format
 msgid "The purchase value must be greater than 0."
 msgstr "La valeur initiale doit être supérieure à 0."
@@ -370,7 +378,7 @@ msgid "Invoices"
 msgstr "Factures"
 
 #. module: account_asset_streamline
-#: code:addons/account_asset_streamline/model/account_asset.py:1042
+#: code:addons/account_asset_streamline/model/account_asset.py:1139
 #, python-format
 msgid "Correction"
 msgstr "Correction"
@@ -424,10 +432,17 @@ msgid "Contract End Date"
 msgstr "Date de fin de contrat"
 
 #. module: account_asset_streamline
-#: code:addons/account_asset_streamline/model/account_asset.py:900
+#: code:addons/account_asset_streamline/model/account_asset.py:988
 #, python-format
 msgid "Must be suspended."
 msgstr "L'immobilisation doit être suspendue."
+
+#. module: account_asset_streamline
+#: view:asset.close:0
+#: view:asset.modify.values:0
+#: view:asset.suspend:0
+msgid "Modify"
+msgstr "Modifier"
 
 #. module: account_asset_streamline
 #: field:account.asset.category,disposal_journal_id:0
@@ -441,10 +456,21 @@ msgid "Destroyed"
 msgstr "Destruction"
 
 #. module: account_asset_streamline
-#: code:addons/account_asset_streamline/model/account_asset.py:1017
+#: code:addons/account_asset_streamline/model/account_asset.py:1114
 #, python-format
 msgid "Missed Depreciation"
 msgstr "Amortissement non effectué"
+
+#. module: account_asset_streamline
+#: constraint:account.asset.asset:0
+msgid "Asset must belong to the same company as its category."
+msgstr "Un amortissement doit appartenir à la même société que sa catégorie."
+
+#. module: account_asset_streamline
+#: view:account.asset.asset:0
+#: view:account.asset.category:0
+msgid "{'default_company_id': company_id}"
+msgstr "{'default_company_id': company_id}"
 
 #. module: account_asset_streamline
 #: field:account.asset.asset,suspension_date:0
@@ -499,7 +525,7 @@ msgid "Invalid value type."
 msgstr "Type de valeur invalide."
 
 #. module: account_asset_streamline
-#: code:addons/account_asset_streamline/model/account_asset.py:168
+#: code:addons/account_asset_streamline/model/account_asset.py:203
 #, python-format
 msgid "Projected Depreciation"
 msgstr "Amortissement prévu"
@@ -538,19 +564,19 @@ msgstr "Amortissement manuel"
 
 #. module: account_asset_streamline
 #: sql_constraint:account.asset.asset:0
-#: code:addons/account_asset_streamline/model/account_asset.py:822
+#: code:addons/account_asset_streamline/model/account_asset.py:945
 #, python-format
 msgid "The number of depreciations must be greater than 0."
 msgstr "Le nombre d'amortissements doit être supérieur à 0."
 
 #. module: account_asset_streamline
-#: code:addons/account_asset_streamline/model/account_asset.py:1069
+#: code:addons/account_asset_streamline/model/account_asset.py:1166
 #, python-format
 msgid "{type} of Asset {ref}"
 msgstr "{type} de l'immobilisation {ref}"
 
 #. module: account_asset_streamline
-#: code:addons/account_asset_streamline/model/account_asset.py:20
+#: code:addons/account_asset_streamline/model/account_asset.py:21
 #, python-format
 msgid "No period was found after the month: {month}/{year}. You may need to create the missing periods."
 msgstr ""
@@ -558,7 +584,7 @@ msgstr ""
 "créer les périodes manquantes si besoin."
 
 #. module: account_asset_streamline
-#: code:addons/account_asset_streamline/model/account_asset.py:1203
+#: code:addons/account_asset_streamline/model/account_asset.py:1300
 #, python-format
 msgid "Depreciation Value Disposal"
 msgstr "Transfert de l'amortissement"
@@ -595,7 +621,7 @@ msgid "General"
 msgstr "Général"
 
 #. module: account_asset_streamline
-#: code:addons/account_asset_streamline/model/account_asset.py:1049
+#: code:addons/account_asset_streamline/model/account_asset.py:1146
 #, python-format
 msgid "Disposal Depreciation"
 msgstr "Dépréciation à la cession"
@@ -617,9 +643,9 @@ msgid "Depreciate selected assets"
 msgstr "Amortir les immobilisations"
 
 #. module: account_asset_streamline
-#: field:account.asset.asset,message_follower_ids:0
-msgid "Followers"
-msgstr "Suiveurs"
+#: field:account.asset.asset,depreciation_auto:0
+msgid "Automatic Depreciations"
+msgstr "Amortissement automatique"
 
 #. module: account_asset_streamline
 #: view:account.asset.asset:0
@@ -627,7 +653,7 @@ msgid "Insurance"
 msgstr "Assurance"
 
 #. module: account_asset_streamline
-#: code:addons/account_asset_streamline/model/account_asset.py:1169
+#: code:addons/account_asset_streamline/model/account_asset.py:1266
 #, python-format
 msgid "Disposal of Asset {ref}"
 msgstr "Cession de l'immobilisation {ref}"
@@ -650,7 +676,7 @@ msgstr "account.asset.depreciation.wizard"
 
 #. module: account_asset_streamline
 #: sql_constraint:account.asset.asset:0
-#: code:addons/account_asset_streamline/model/account_asset.py:832
+#: code:addons/account_asset_streamline/model/account_asset.py:955
 #, python-format
 msgid "The put-into-service date cannot be before the purchase date."
 msgstr ""
@@ -660,6 +686,11 @@ msgstr ""
 #: field:account.asset.asset,description:0
 msgid "Description"
 msgstr "Description"
+
+#. module: account_asset_streamline
+#: view:account.asset.category:0
+msgid "onchange_company_id()"
+msgstr "onchange_company_id()"
 
 #. module: account_asset_streamline
 #: field:account.asset.asset,service_date:0
@@ -722,7 +753,7 @@ msgid "Asset category"
 msgstr "Catégorie d'immobilisation"
 
 #. module: account_asset_streamline
-#: code:addons/account_asset_streamline/model/account_asset.py:1047
+#: code:addons/account_asset_streamline/model/account_asset.py:1144
 #, python-format
 msgid "Depreciation"
 msgstr "Amortissement"
@@ -769,7 +800,7 @@ msgstr "Effacer la sélection d'immobilisations"
 
 #. module: account_asset_streamline
 #: sql_constraint:account.asset.asset:0
-#: code:addons/account_asset_streamline/model/account_asset.py:827
+#: code:addons/account_asset_streamline/model/account_asset.py:950
 #, python-format
 msgid "The depreciation end date cannot be before the service date."
 msgstr ""
@@ -783,10 +814,17 @@ msgstr "Dernière période dépréciée"
 
 #. module: account_asset_streamline
 #: sql_constraint:account.asset.asset:0
-#: code:addons/account_asset_streamline/model/account_asset.py:837
+#: code:addons/account_asset_streamline/model/account_asset.py:960
 #, python-format
 msgid "The asset's name must be unique."
 msgstr "Le nom de l'immobilisation doit être unique."
+
+#. module: account_asset_streamline
+#: constraint:account.asset.category:0
+msgid "Accounts and journals must belong to the same company as the category."
+msgstr ""
+"Les comptes et journaux doivent appartenir à la même société que la "
+"catégorie."
 
 #. module: account_asset_streamline
 #: field:account.asset.asset,a4_id:0
