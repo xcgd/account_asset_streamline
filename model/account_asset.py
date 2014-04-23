@@ -8,6 +8,7 @@ from openerp.tools.translate import _
 import calendar
 import openerp.addons.decimal_precision as dp
 import psycopg2
+from oemetasl import OEMetaSL
 
 
 class period_error(osv.except_osv):
@@ -55,6 +56,7 @@ class account_asset_category_streamline(osv.Model):
 class account_asset_asset_streamline(osv.Model):
     """Extends account.asset.asset, from the core module account_asset."""
 
+    __metaclass__ = OEMetaSL
     _name = 'account.asset.asset'
     _inherit = ["account.asset.asset", "mail.thread"]
 
@@ -837,41 +839,6 @@ class account_asset_asset_streamline(osv.Model):
             _(u"The asset's name must be unique.")
         ),
     ]
-
-    def copy(self, cr, uid, ids, default=None, context=None):
-        """Switch the copy back to the draft state. Clear all fields that can
-        only be initialized or changed while the asset is active."""
-
-        if default is None:
-            default = {}
-
-        default.update({
-            'state': 'draft',
-            'additional_value': 0,
-            'gross_disposal': 0,
-            'salvage_adjust': 0,
-            'depreciation_manual': 0,
-            'depreciation_disposal': 0,
-            'theoretical_depreciation': 0,
-            'depreciation_auto': 0,
-            'last_depreciation_period': None,
-            'depreciation_line_ids': False,
-            'account_move_line_ids': False,
-            'history_ids': False,
-            'values_history_ids': False,
-            'confirmation_date': False,
-            'suspension_date': False,
-            'suspension_reason': None,
-            'reactivation_date': False,
-            'disposal_date': False,
-            'disposal_reason': None,
-            'disposal_value': 0,
-            'disposal_period': None,
-        })
-
-        return super(account_asset_asset_streamline, self).copy(
-            cr, uid, ids, default=default, context=context
-        )
 
     def unlink(self, cr, uid, ids, context=None):
         """Also delete the history rows manually."""
