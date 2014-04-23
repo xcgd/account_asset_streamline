@@ -30,7 +30,8 @@ class asset_suspend(osv.TransientModel):
         asset_val = {
             'state': 'suspended',
             'suspension_reason': data.suspension_reason,
-            'suspension_date': time.strftime('%Y-%m-%d')
+            'suspension_date': time.strftime('%Y-%m-%d'),
+            'reactivation_date': None,
         }
         asset_obj.write(cr, uid, [asset_id], asset_val, context=context)
 

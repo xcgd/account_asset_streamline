@@ -371,8 +371,8 @@ class account_asset_asset_streamline(osv.Model):
         # With end_date: if it is before or during the last depreciated period,
         # revert the depreciations for the days in the period after end_date.
         elif end_date is not None:
-            last_period = asset.last_depreciation_period
-            if end_date <= last_period.date_stop:
+            last_period = asset.last_depreciation_period.date_stop
+            if end_date.strftime('%Y-%m-%d') <= last_period:
                 start = max(srv_start, period_start)
                 elapsed_days += self._nb_days_in_interval(start, end_date)
                 stop_after_correction = True
@@ -466,12 +466,14 @@ class account_asset_asset_streamline(osv.Model):
         ),
         'description': fields.char(
             u"Description",
-            size=256
+            size=256,
+            track_visibility='onchange',
         ),
         'additional_value': fields.float(
             u"Additional Value",
             readonly=True,
             digits_compute=dp.get_precision('Account'),
+            track_visibility='onchange',
         ),
         'gross_disposal': fields.float(
             u"Disposed Asset",
@@ -496,6 +498,7 @@ class account_asset_asset_streamline(osv.Model):
             u"Salvage Value Adjustment",
             readonly=True,
             digits_compute=dp.get_precision('Account'),
+            track_visibility='onchange',
         ),
         'adjusted_salvage_value': fields.function(
             lambda s, *a: s._sum(s._salvage_cols, *a),
@@ -528,6 +531,7 @@ class account_asset_asset_streamline(osv.Model):
             u"Manual Depreciations",
             readonly=True,
             digits_compute=dp.get_precision('Account'),
+            track_visibility='onchange',
         ),
         'depreciation_disposal': fields.float(
             u"Disposed Asset",
@@ -584,18 +588,31 @@ class account_asset_asset_streamline(osv.Model):
                 'draft': [('readonly', False)]
             },
         ),
+        'confirmation_date': fields.date(
+            u"Confirmation Date",
+            readonly=True,
+            track_visibility='onchange',
+        ),
         'suspension_date': fields.date(
             u"Suspension Date",
             readonly=True,
+            track_visibility='onchange',
         ),
         'suspension_reason': fields.char(
             u"Suspension Reason",
             size=256,
             readonly=True,
+            track_visibility='onchange',
+        ),
+        'reactivation_date': fields.date(
+            u"Reactivation Date",
+            readonly=True,
+            track_visibility='onchange',
         ),
         'disposal_date': fields.date(
             u'Disposal Date',
             readonly=True,
+            track_visibility='onchange',
         ),
         'disposal_reason': fields.selection(
             [
@@ -659,7 +676,8 @@ class account_asset_asset_streamline(osv.Model):
             'account.asset.invoice',
             'asset_id',
             u"Invoices",
-            ondelete='cascade'
+            ondelete='cascade',
+            track_visibility='onchange',
         ),
         'insurance_type': fields.char(
             u"Type",
@@ -827,19 +845,29 @@ class account_asset_asset_streamline(osv.Model):
         if default is None:
             default = {}
 
-        default['state'] = 'draft'
-        default['additional_value'] = 0
-        default['gross_disposal'] = 0
-        default['salvage_adjust'] = 0
-        default['depreciation_manual'] = 0
-        default['depreciation_disposal'] = 0
-        default['theoretical_depreciation'] = 0
-        default['depreciation_auto'] = 0
-        default['last_depreciation_period'] = None
-        default['depreciation_line_ids'] = False
-        default['account_move_line_ids'] = False
-        default['history_ids'] = False
-        default['values_history_ids'] = False
+        default.update({
+            'state': 'draft',
+            'additional_value': 0,
+            'gross_disposal': 0,
+            'salvage_adjust': 0,
+            'depreciation_manual': 0,
+            'depreciation_disposal': 0,
+            'theoretical_depreciation': 0,
+            'depreciation_auto': 0,
+            'last_depreciation_period': None,
+            'depreciation_line_ids': False,
+            'account_move_line_ids': False,
+            'history_ids': False,
+            'values_history_ids': False,
+            'confirmation_date': False,
+            'suspension_date': False,
+            'suspension_reason': None,
+            'reactivation_date': False,
+            'disposal_date': False,
+            'disposal_reason': None,
+            'disposal_value': 0,
+            'disposal_period': None,
+        })
 
         return super(account_asset_asset_streamline, self).copy(
             cr, uid, ids, default=default, context=context
@@ -859,13 +887,32 @@ class account_asset_asset_streamline(osv.Model):
 
     def reactivate(self, cr, uid, ids, context=None):
         """Change state from Suspended to Open."""
-        vals = {'state': 'open', 'suspension_reason': None}
+        vals = {
+            'state': 'open',
+            'suspension_reason': None,
+            'reactivation_date': time.strftime('%Y-%m-%d'),
+        }
         assets = self.browse(cr, uid, ids, context=context)
         for asset in assets:
             if asset.state == 'suspended':
                 self.write(cr, uid, asset.id, vals.copy(), context=context)
             else:
                 raise osv.except_osv(_(u"Error!"), _(u"Must be suspended."))
+        self.compute_depreciation_board(cr, uid, ids, context=context)
+
+    def validate(self, cr, uid, ids, context=None):
+        """Set state to open. Override the method defined in the parent."""
+        vals = {
+            'state': 'open',
+            'confirmation_date': time.strftime('%Y-%m-%d'),
+        }
+        assets = self.browse(cr, uid, ids, context=context)
+        for asset in assets:
+            if asset.state == 'draft':
+                self.write(cr, uid, asset.id, vals.copy(), context=context)
+            else:
+                raise osv.except_osv(_(u"Error!"), _(u"Must be a draft."))
+        self.compute_depreciation_board(cr, uid, ids, context=context)
 
     def onchange_category_id(self, cr, uid, ids, category_id, context=None):
         """Unused. Override the method defined in the parent class."""
@@ -1019,7 +1066,7 @@ class account_asset_asset_streamline(osv.Model):
                     line_pattern = _(u"Mensual {type} of Asset {ref}")
                 else:
                     line_ref = u"{0}".format(asset.name)
-                    line_pattern = _(u"{type} for the Disposal of Asset {ref}")
+                    line_pattern = _(u"{type} of Asset {ref}")
                 line_base_vals = {
                     'asset_id': asset.id,
                     'move_id': move_id,
