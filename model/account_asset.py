@@ -137,27 +137,92 @@ class account_asset_asset_streamline(osv.Model):
 
         return res
 
-    def _calculate_daily_depreciation(self, cr, uid, ids, context=None):
+    def _calculate_days(self, asset, period_start=None):
 
-        asset = self.browse(cr, uid, ids, context=context)
-        value_residual = asset.value_residual
         method_time = asset.method_time
+        srv_date = datetime.strptime(asset.service_date, "%Y-%m-%d").date()
+        if period_start is None:
+            period_start = srv_date
 
         if method_time == 'number':
-            method_number = asset.method_number
-            monthly_depreciation = value_residual / method_number
-            daily_depreciation = monthly_depreciation / 30
+            nb_months = asset.method_number
+            if period_start > srv_date:
+                nb_months -= period_start.month - srv_date.month
+                nb_months -= (period_start.year - srv_date.year) * 12
+                nb_days = srv_date.day - period_start.day + nb_months * 30
+            else:
+                nb_days = nb_months * 30
 
         else:
-            srv_date = datetime.strptime(asset.service_date, "%Y-%m-%d").date()
             end_date = datetime.strptime(asset.method_end, "%Y-%m-%d").date()
-            nb_months = end_date.month - srv_date.month
-            nb_months += (end_date.year - srv_date.year) * 12
-            nb_days = end_date.month - srv_date.month
+            start_date = period_start if period_start > srv_date else srv_date
+            nb_months = end_date.month - start_date.month
+            nb_months += (end_date.year - start_date.year) * 12
+            nb_days = end_date.day - start_date.day
             nb_days += nb_months * 30
-            daily_depreciation = value_residual / nb_days
 
-        return daily_depreciation
+        return nb_days
+
+    def _compute_depreciation_lines(self, asset, period, vals=None):
+
+        if vals is None:
+            vals = {}
+
+        pattern = "%Y-%m-%d"
+        period_start = datetime.strptime(period.date_start, pattern).date()
+        service_start = datetime.strptime(asset.service_date, pattern).date()
+
+        net_book_value = vals.get('net_book_value', asset.net_book_value)
+        depreciation_auto = vals.get(
+            'depreciation_auto',
+            asset.depreciation_auto
+        )
+
+        remaining_days = self._calculate_days(asset, period_start=period_start)
+
+        if remaining_days <= 0:
+            vals['depreciation_auto'] = depreciation_auto + net_book_value
+            vals['correction_value'] = net_book_value
+            vals['net_book_value'] = 0
+            return vals
+
+        first_deprecation = (period_start.month == service_start.month and
+            period_start.year == service_start.year)
+
+        total_days = self._calculate_days(asset)
+        elapsed_days = total_days - remaining_days
+
+        if not first_deprecation:
+
+            previous_daily_depreciation = vals.get(
+                'previous_daily_depreciation',
+                asset.previous_daily_depreciation
+            )
+            expected_book_value = previous_daily_depreciation * elapsed_days
+            correction_value = net_book_value - expected_book_value
+
+            if correction_value != 0:
+                depreciation_auto += correction_value
+                net_book_value -= correction_value
+                vals['correction_value'] = correction_value
+
+        if remaining_days <= 30:
+            depreciation_value = net_book_value
+
+        else:
+            daily_depreciation = net_book_value / remaining_days
+            if first_deprecation:
+                prorata = 30 - service_start.day + period_start.day
+                depreciation_value = daily_depreciation * prorata
+            else:
+                depreciation_value = daily_depreciation * 30
+
+        vals['previous_daily_depreciation'] = daily_depreciation
+        vals['depreciation_value'] = depreciation_value
+        vals['depreciation_auto'] = depreciation_auto + depreciation_value
+        vals['net_book_value'] = net_book_value - depreciation_value
+        print vals
+        return vals
 
     _gross_cols = ['purchase_value', 'additional_value']
     _salvage_cols = ['salvage_value', 'salvage_adjust']
@@ -192,14 +257,14 @@ class account_asset_asset_streamline(osv.Model):
             size=256
         ),
         'additional_value': fields.float(
-            'Additional Value',
+            u"Additional Value",
             readonly=True,
             digits_compute=dp.get_precision('Account'),
         ),
         'adjusted_gross_value': fields.function(
             lambda s, *a: s._sum(s._gross_cols, *a),
             type='float',
-            string=u'Adjusted Gross Value',
+            string=u"Adjusted Gross Value",
             readonly=True,
             digits_compute=dp.get_precision('Account'),
             store={
@@ -211,14 +276,14 @@ class account_asset_asset_streamline(osv.Model):
             },
         ),
         'salvage_adjust': fields.float(
-            'Salvage Value Adjustment',
+            u"Salvage Value Adjustment",
             readonly=True,
             digits_compute=dp.get_precision('Account'),
         ),
         'adjusted_salvage_value': fields.function(
             lambda s, *a: s._sum(s._salvage_cols, *a),
             type='float',
-            string=u'Adjusted Salvage Value',
+            string=u"Adjusted Salvage Value",
             readonly=True,
             digits_compute=dp.get_precision('Account'),
             store={
@@ -230,7 +295,7 @@ class account_asset_asset_streamline(osv.Model):
             },
         ),
         'depreciation_initial': fields.float(
-            'Initial Depreciation',
+            u"Initial Depreciation",
             readonly=True,
             digits_compute=dp.get_precision('Account'),
             states={
@@ -239,7 +304,7 @@ class account_asset_asset_streamline(osv.Model):
         ),
         # TODO Should be functional or at least readonly and edited by methods.
         'depreciation_auto': fields.float(
-            'Automatic Depreciations',
+            u"Automatic Depreciations",
             readonly=True,
             digits_compute=dp.get_precision('Account'),
             states={
@@ -247,14 +312,14 @@ class account_asset_asset_streamline(osv.Model):
             },
         ),
         'depreciation_manual': fields.float(
-            'Manual Depreciations',
+            u"Manual Depreciations",
             readonly=True,
             digits_compute=dp.get_precision('Account'),
         ),
         'depreciation_total': fields.function(
             lambda s, *a: s._sum(s._depreciation_cols, *a),
             type='float',
-            string=u'Total of Depreciations',
+            string=u"Total of Depreciations",
             readonly=True,
             digits_compute=dp.get_precision('Account'),
             store={
@@ -268,7 +333,7 @@ class account_asset_asset_streamline(osv.Model):
         'net_book_value': fields.function(
             _get_book_value,
             type='float',
-            string=u'Net Book Value',
+            string=u"Net Book Value",
             readonly=True,
             digits_compute=dp.get_precision('Account'),
             store={
@@ -279,12 +344,16 @@ class account_asset_asset_streamline(osv.Model):
                 ),
             },
         ),
+        'previous_daily_depreciation': fields.float(
+            u"Previous Daily Depreciation",
+            readonly=True,
+        ),
         'quantity': fields.char(
-            u'Quantity',
+            u"Quantity",
             size=64,
         ),
         'service_date': fields.date(
-            u'Placed in Service Date',
+            u"Placed in Service Date",
             required=True,
             readonly=True,
             states={
@@ -292,11 +361,11 @@ class account_asset_asset_streamline(osv.Model):
             },
         ),
         'suspension_date': fields.date(
-            u'Suspension Date',
+            u"Suspension Date",
             readonly=True,
         ),
         'suspension_reason': fields.char(
-            u'Suspension Reason',
+            u"Suspension Reason",
             size=256,
             readonly=True,
         ),
@@ -311,24 +380,24 @@ class account_asset_asset_streamline(osv.Model):
                 ('stolen', u"Stolen"),
                 ('destroyed', u"Destroyed")
             ],
-            u'Disposal Reason',
+            u"Disposal Reason",
             size=256,
             translate=True,
             readonly=True,
         ),
         'disposal_value': fields.integer(
-            u'Disposal Value',
+            u"Disposal Value",
             readonly=True,
         ),
         'last_depreciation_period': fields.many2one(
             "account.period",
-            u'Last Depreciation Period',
+            u"Last Depreciation Period",
             readonly=True,
         ),
         'method_end_fct': fields.function(
             _get_method_end,
             type='date',
-            string=u'Calculated End Date',
+            string=u"Calculated End Date",
             readonly=True,
             digits_compute=dp.get_precision('Account'),
             store={
@@ -342,7 +411,7 @@ class account_asset_asset_streamline(osv.Model):
         'method_number_fct': fields.function(
             _get_method_number,
             type='integer',
-            string=u'Calculated Depreciations',
+            string=u"Calculated Depreciations",
             readonly=True,
             digits_compute=dp.get_precision('Account'),
             store={
@@ -359,32 +428,32 @@ class account_asset_asset_streamline(osv.Model):
             u"Invoices"
         ),
         'insurance_type': fields.char(
-            u'Type',
+            u"Type",
             size=64,
         ),
         'insurance_contract_number': fields.char(
-            u'Contract Number',
+            u"Contract Number",
             size=64,
         ),
         'insurance_contract_amount': fields.integer(
-            u'Contract Amount',
+            u"Contract Amount",
         ),
         'insurance_company_deductible': fields.integer(
-            u'Company Deductible Amount',
+            u"Company Deductible Amount",
         ),
         'start_insurance_contract_date': fields.date(
-            u'Contract Start Date',
+            u"Contract Start Date",
         ),
         'end_insurance_contract_date': fields.date(
-            u'Contract End Date',
+            u"Contract End Date",
         ),
         'insurance_partner_id': fields.many2one(
             'res.partner',
-            u'Contact Partner',
+            u"Contact Partner",
         ),
         'a1_id': fields.many2one(
             'analytic.code',
-            "Analysis Code 1",
+            u"Analysis Code 1",
             domain=[
                 ('nd_id.ns_id.model_name', 'in', ['account_asset_asset']),
                 ('nd_id.ns_id.ordering', '=', '1'),
@@ -393,7 +462,7 @@ class account_asset_asset_streamline(osv.Model):
         ),
         'a2_id': fields.many2one(
             'analytic.code',
-            "Analysis Code 2",
+            u"Analysis Code 2",
             domain=[
                 ('nd_id.ns_id.model_name', 'in', ['account_asset_asset']),
                 ('nd_id.ns_id.ordering', '=', '2'),
@@ -402,7 +471,7 @@ class account_asset_asset_streamline(osv.Model):
         ),
         'a3_id': fields.many2one(
             'analytic.code',
-            "Analysis Code 3",
+            u"Analysis Code 3",
             domain=[
                 ('nd_id.ns_id.model_name', 'in', ['account_asset_asset']),
                 ('nd_id.ns_id.ordering', '=', '3'),
@@ -411,7 +480,7 @@ class account_asset_asset_streamline(osv.Model):
         ),
         'a4_id': fields.many2one(
             'analytic.code',
-            "Analysis Code 4",
+            u"Analysis Code 4",
             domain=[
                 ('nd_id.ns_id.model_name', 'in', ['account_asset_asset']),
                 ('nd_id.ns_id.ordering', '=', '4'),
@@ -420,7 +489,7 @@ class account_asset_asset_streamline(osv.Model):
         ),
         'a5_id': fields.many2one(
             'analytic.code',
-            "Analysis Code 5",
+            u"Analysis Code 5",
             domain=[
                 ('nd_id.ns_id.model_name', 'in', ['account_asset_asset']),
                 ('nd_id.ns_id.ordering', '=', '5'),
@@ -429,7 +498,7 @@ class account_asset_asset_streamline(osv.Model):
         ),
         't1_id': fields.many2one(
             'analytic.code',
-            "Transaction Code 1",
+            u"Transaction Code 1",
             domain=[
                 ('nd_id.ns_id.model_name', 'in', ['account_move_line']),
                 ('nd_id.ns_id.ordering', '=', '1'),
@@ -438,7 +507,7 @@ class account_asset_asset_streamline(osv.Model):
         ),
         't2_id': fields.many2one(
             'analytic.code',
-            "Transaction Code 2",
+            u"Transaction Code 2",
             domain=[
                 ('nd_id.ns_id.model_name', 'in', ['account_move_line']),
                 ('nd_id.ns_id.ordering', '=', '2'),
@@ -447,7 +516,7 @@ class account_asset_asset_streamline(osv.Model):
         ),
         't3_id': fields.many2one(
             'analytic.code',
-            "Transaction Code 3",
+            u"Transaction Code 3",
             domain=[
                 ('nd_id.ns_id.model_name', 'in', ['account_move_line']),
                 ('nd_id.ns_id.ordering', '=', '3'),
@@ -456,7 +525,7 @@ class account_asset_asset_streamline(osv.Model):
         ),
         't4_id': fields.many2one(
             'analytic.code',
-            "Transaction Code 4",
+            u"Transaction Code 4",
             domain=[
                 ('nd_id.ns_id.model_name', 'in', ['account_move_line']),
                 ('nd_id.ns_id.ordering', '=', '4'),
@@ -465,7 +534,7 @@ class account_asset_asset_streamline(osv.Model):
         ),
         't5_id': fields.many2one(
             'analytic.code',
-            "Transaction Code 5",
+            u"Transaction Code 5",
             domain=[
                 ('nd_id.ns_id.model_name', 'in', ['account_move_line']),
                 ('nd_id.ns_id.ordering', '=', '5'),
@@ -475,7 +544,7 @@ class account_asset_asset_streamline(osv.Model):
         'values_history_ids': fields.one2many(
             'account.asset.values.history',
             'asset_id',
-            'Values History',
+            u"Values History",
             readonly=True
         ),
     }
@@ -544,37 +613,25 @@ class account_asset_asset_streamline(osv.Model):
 
         period_osv = self.pool.get('account.period')
         period = period_osv.browse(cr, uid, period_id, context=context)
-        pattern = "%Y-%m-%d"
-        period_start = datetime.strptime(period.date_start, pattern).date()
-        period_stop = datetime.strptime(period.date_stop, pattern).date()
 
         assets = self.browse(cr, uid, ids, context=context)
         for asset in assets:
 
-            srv_date = datetime.strptime(asset.service_date, pattern).date()
-            daily_depreciation = self._calculate_daily_depreciation(
-                cr, uid, asset.id, context=context
-            )
-            if asset.method_time == 'end':
-                end_field = asset.method_end
-            else:
-                end_field = asset.method_end_fct
-            end_date = datetime.strptime(end_field, pattern).date()
+            vals = self._compute_depreciation_lines(asset, period)
+            vals['last_depreciation_period'] = period_id
+            vals.pop('net_book_value')
 
-            if(end_date <= period_stop):
-                depreciation_value = asset.value_residual
-            elif (srv_date >= period_start):
-                diff_days = srv_date.day - period_start.day
-                depreciation_value = daily_depreciation * (30 - diff_days)
-            else:
-                depreciation_value = daily_depreciation * 30
+            correction_value = vals.pop('correction_value', None)
+            if correction_value:
+                # TODO: Create correction line
+                print correction_value
 
-            self.depreciate_move(cr, uid, ids, depreciation_value,
-                context=context
-            )
+            depreciation_value = vals.pop('depreciation_value', None)
+            if depreciation_value:
+                # TODO: Create depreciation line
+                print depreciation_value
 
-        vals = {'last_depreciation_period': period_id}
-        self.write(cr, uid, ids, vals, context=context)
+            self.write(cr, uid, asset.id, vals, context=context)
 
     # TODO Implementation
     def depreciate_move(self, cr, uid, ids, depreciation_value, context=None):
@@ -585,12 +642,12 @@ class account_asset_values_history(osv.Model):
     _name = 'account.asset.values.history'
     _description = 'Asset Values history'
     _columns = {
-        'name': fields.char('Reason', size=64, select=1),
-        'user_id': fields.many2one('res.users', 'User', required=True),
-        'date': fields.date('Date', required=True),
+        'name': fields.char(u"Reason", size=64, select=1),
+        'user_id': fields.many2one('res.users', u"User", required=True),
+        'date': fields.date(u"Date", required=True),
         'asset_id': fields.many2one(
             'account.asset.asset',
-            'Asset',
+            u"Asset",
             required=True
         ),
         'adjusted_value': fields.selection(
@@ -599,12 +656,12 @@ class account_asset_values_history(osv.Model):
                 ('salvage_adjust', u"Salvage Value Adjustment"),
                 ('depreciation_manual', u"Manual Depreciation"),
             ],
-            'Adjusted Value',
+            u"Adjusted Value",
         ),
         'new_value': fields.float(
-            'New amount',
+            u"New amount",
         ),
-        'note': fields.text('Note'),
+        'note': fields.text(u"Note"),
     }
     _order = 'date desc'
     _defaults = {
@@ -654,13 +711,13 @@ class account_asset_invoice(osv.Model):
         ),
         'currency_id': fields.many2one(
             'res.currency',
-            "Currency",
+            u"Currency",
             readonly=True,
             required=True,
         ),
         'asset_id': fields.many2one(
             'account.asset.asset',
-            "Asset",
+            u"Asset",
             readonly=True,
             required=True,
         )
