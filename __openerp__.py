@@ -14,7 +14,8 @@
     'depends': [
         'base',
         'account_streamline',
-        'account_asset'
+        'account_asset',
+        'oemetasl',
     ],
     'data': [
         'data/asset_sequence.xml',

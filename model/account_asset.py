@@ -8,7 +8,7 @@ from openerp.tools.translate import _
 import calendar
 import openerp.addons.decimal_precision as dp
 import psycopg2
-from oemetasl import OEMetaSL
+from openerp.addons.oemetasl import OEMetaSL
 
 
 class period_error(osv.except_osv):
