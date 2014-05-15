@@ -736,8 +736,7 @@ class account_asset_asset_streamline(osv.Model):
             'analytic.code',
             u"Analysis Code 1",
             domain=[
-                ('nd_id.ns_id.model_name', 'in', ['account_asset_asset']),
-                ('nd_id.ns_id.ordering', '=', '1'),
+                ('nd_id.ns1_id.model_name', 'in', ['account_asset_asset']),
             ],
             track_visibility='onchange',
         ),
@@ -745,8 +744,7 @@ class account_asset_asset_streamline(osv.Model):
             'analytic.code',
             u"Analysis Code 2",
             domain=[
-                ('nd_id.ns_id.model_name', 'in', ['account_asset_asset']),
-                ('nd_id.ns_id.ordering', '=', '2'),
+                ('nd_id.ns2_id.model_name', 'in', ['account_asset_asset']),
             ],
             track_visibility='onchange',
         ),
@@ -754,8 +752,7 @@ class account_asset_asset_streamline(osv.Model):
             'analytic.code',
             u"Analysis Code 3",
             domain=[
-                ('nd_id.ns_id.model_name', 'in', ['account_asset_asset']),
-                ('nd_id.ns_id.ordering', '=', '3'),
+                ('nd_id.ns3_id.model_name', 'in', ['account_asset_asset']),
             ],
             track_visibility='onchange',
         ),
@@ -763,8 +760,7 @@ class account_asset_asset_streamline(osv.Model):
             'analytic.code',
             u"Analysis Code 4",
             domain=[
-                ('nd_id.ns_id.model_name', 'in', ['account_asset_asset']),
-                ('nd_id.ns_id.ordering', '=', '4'),
+                ('nd_id.ns4_id.model_name', 'in', ['account_asset_asset']),
             ],
             track_visibility='onchange',
         ),
@@ -772,8 +768,7 @@ class account_asset_asset_streamline(osv.Model):
             'analytic.code',
             u"Analysis Code 5",
             domain=[
-                ('nd_id.ns_id.model_name', 'in', ['account_asset_asset']),
-                ('nd_id.ns_id.ordering', '=', '5'),
+                ('nd_id.ns5_id.model_name', 'in', ['account_asset_asset']),
             ],
             track_visibility='onchange',
         ),
@@ -781,8 +776,7 @@ class account_asset_asset_streamline(osv.Model):
             'analytic.code',
             u"Transaction Code 1",
             domain=[
-                ('nd_id.ns_id.model_name', 'in', ['account_move_line']),
-                ('nd_id.ns_id.ordering', '=', '1'),
+                ('nd_id.ns1_id.model_name', 'in', ['account_move_line']),
             ],
             track_visibility='onchange',
         ),
@@ -790,8 +784,7 @@ class account_asset_asset_streamline(osv.Model):
             'analytic.code',
             u"Transaction Code 2",
             domain=[
-                ('nd_id.ns_id.model_name', 'in', ['account_move_line']),
-                ('nd_id.ns_id.ordering', '=', '2'),
+                ('nd_id.ns2_id.model_name', 'in', ['account_move_line']),
             ],
             track_visibility='onchange',
         ),
@@ -799,8 +792,7 @@ class account_asset_asset_streamline(osv.Model):
             'analytic.code',
             u"Transaction Code 3",
             domain=[
-                ('nd_id.ns_id.model_name', 'in', ['account_move_line']),
-                ('nd_id.ns_id.ordering', '=', '3'),
+                ('nd_id.ns3_id.model_name', 'in', ['account_move_line']),
             ],
             track_visibility='onchange',
         ),
@@ -808,8 +800,7 @@ class account_asset_asset_streamline(osv.Model):
             'analytic.code',
             u"Transaction Code 4",
             domain=[
-                ('nd_id.ns_id.model_name', 'in', ['account_move_line']),
-                ('nd_id.ns_id.ordering', '=', '4'),
+                ('nd_id.ns4_id.model_name', 'in', ['account_move_line']),
             ],
             track_visibility='onchange',
         ),
@@ -817,8 +808,7 @@ class account_asset_asset_streamline(osv.Model):
             'analytic.code',
             u"Transaction Code 5",
             domain=[
-                ('nd_id.ns_id.model_name', 'in', ['account_move_line']),
-                ('nd_id.ns_id.ordering', '=', '5'),
+                ('nd_id.ns5_id.model_name', 'in', ['account_move_line']),
             ],
             track_visibility='onchange',
         ),
@@ -979,6 +969,44 @@ class account_asset_asset_streamline(osv.Model):
 
         # Iterate for every asset.
         for asset in assets:
+
+            """
+            nc_osv = self.pool.get('analytic.code')
+
+            print "\n", "*" * 5, "Using browse", "*" * 5
+            nc_ids = nc_osv.search(cr, uid, [], context=context)
+            for nc in nc_osv.browse(cr, uid, nc_ids, context=context):
+                ns1_ids = nc.nd_id.ns1_id
+                for ns in ns1_ids:
+                    if ns.model_name == "account_asset_asset":
+                        print nc.id, nc.nd_id.name
+            print "*" * 24, "\n"
+
+            print "*" * 5, "Using search", "*" * 5
+            dom = [('nd_id.ns1_id.model_name', '=', 'account_asset_asset')]
+            nc_ids = nc_osv.search(cr, uid, dom, context=context)
+            for nc in nc_osv.browse(cr, uid, nc_ids, context=context):
+                print nc.id, nc.nd_id.name
+            print "*" * 24, "\n" * 3
+            """
+
+            nd_osv = self.pool.get('analytic.dimension')
+
+            print "\n", "*" * 5, "Using browse", "*" * 5
+            nd_ids = nd_osv.search(cr, uid, [], context=context)
+            for nd in nd_osv.browse(cr, uid, nd_ids, context=context):
+                model_names = [ns.model_name for ns in nd.ns1_id]
+                for model_name in model_names:
+                    if model_name == "account_asset_asset":
+                        print nd.id, nd.name
+            print "*" * 24, "\n"
+
+            print "*" * 5, "Using search", "*" * 5
+            dom = [('ns1_id.model_name', '=', 'account_asset_asset')]
+            nd_ids = nd_osv.search(cr, uid, dom, context=context)
+            for nd in nd_osv.browse(cr, uid, nd_ids, context=context):
+                print nd.id, nd.name
+            print "*" * 24, "\n" * 3
 
             asset_id = asset.id
             salvage = asset.adjusted_salvage_value
