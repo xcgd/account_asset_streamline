@@ -8,8 +8,7 @@ from openerp.tools.translate import _
 import calendar
 import openerp.addons.decimal_precision as dp
 import psycopg2
-from openerp.addons.oemetasl import OEMetaSL
-
+from openerp.addons.analytic_structure.MetaAnalytic import MetaAnalytic
 
 class period_error(osv.except_osv):
     """
@@ -87,7 +86,7 @@ class account_asset_category_streamline(osv.Model):
 class account_asset_asset_streamline(osv.Model):
     """Extends account.asset.asset, from the core module account_asset."""
 
-    __metaclass__ = OEMetaSL
+    __metaclass__ = MetaAnalytic
     _name = 'account.asset.asset'
     _inherit = ["account.asset.asset", "mail.thread"]
 
@@ -732,92 +731,17 @@ class account_asset_asset_streamline(osv.Model):
             'res.partner',
             u"Contact Partner",
         ),
-        'a1_id': fields.many2one(
-            'analytic.code',
-            u"Analysis Code 1",
-            domain=[
-                ('nd_id.ns1_id.model_name', 'in', ['account_asset_asset']),
-            ],
-            track_visibility='onchange',
-        ),
-        'a2_id': fields.many2one(
-            'analytic.code',
-            u"Analysis Code 2",
-            domain=[
-                ('nd_id.ns2_id.model_name', 'in', ['account_asset_asset']),
-            ],
-            track_visibility='onchange',
-        ),
-        'a3_id': fields.many2one(
-            'analytic.code',
-            u"Analysis Code 3",
-            domain=[
-                ('nd_id.ns3_id.model_name', 'in', ['account_asset_asset']),
-            ],
-            track_visibility='onchange',
-        ),
-        'a4_id': fields.many2one(
-            'analytic.code',
-            u"Analysis Code 4",
-            domain=[
-                ('nd_id.ns4_id.model_name', 'in', ['account_asset_asset']),
-            ],
-            track_visibility='onchange',
-        ),
-        'a5_id': fields.many2one(
-            'analytic.code',
-            u"Analysis Code 5",
-            domain=[
-                ('nd_id.ns5_id.model_name', 'in', ['account_asset_asset']),
-            ],
-            track_visibility='onchange',
-        ),
-        't1_id': fields.many2one(
-            'analytic.code',
-            u"Transaction Code 1",
-            domain=[
-                ('nd_id.ns1_id.model_name', 'in', ['account_move_line']),
-            ],
-            track_visibility='onchange',
-        ),
-        't2_id': fields.many2one(
-            'analytic.code',
-            u"Transaction Code 2",
-            domain=[
-                ('nd_id.ns2_id.model_name', 'in', ['account_move_line']),
-            ],
-            track_visibility='onchange',
-        ),
-        't3_id': fields.many2one(
-            'analytic.code',
-            u"Transaction Code 3",
-            domain=[
-                ('nd_id.ns3_id.model_name', 'in', ['account_move_line']),
-            ],
-            track_visibility='onchange',
-        ),
-        't4_id': fields.many2one(
-            'analytic.code',
-            u"Transaction Code 4",
-            domain=[
-                ('nd_id.ns4_id.model_name', 'in', ['account_move_line']),
-            ],
-            track_visibility='onchange',
-        ),
-        't5_id': fields.many2one(
-            'analytic.code',
-            u"Transaction Code 5",
-            domain=[
-                ('nd_id.ns5_id.model_name', 'in', ['account_move_line']),
-            ],
-            track_visibility='onchange',
-        ),
         'values_history_ids': fields.one2many(
             'account.asset.values.history',
             'asset_id',
             u"Values History",
             readonly=True
         ),
+    }
+
+    _analytic = {
+        'a': 'account_asset_asset',
+        't': 'account_move_line',
     }
 
     _defaults = {
@@ -909,47 +833,6 @@ class account_asset_asset_streamline(osv.Model):
     def onchange_category_id(self, cr, uid, ids, category_id, context=None):
         """Unused. Override the method defined in the parent class."""
         return {}
-
-    def fields_get(
-        self, cr, uid, allfields=None, context=None, write_access=True
-    ):
-        """Override this method to rename analytic fields."""
-
-        res = super(account_asset_asset_streamline, self).fields_get(
-            cr, uid, allfields=allfields, context=context,
-            write_access=write_access
-        )
-
-        analytic_osv = self.pool.get('analytic.structure')
-        res = analytic_osv.analytic_fields_get(
-            cr, uid, 'account_asset_asset', res, context=context
-        )
-        res = analytic_osv.analytic_fields_get(
-            cr, uid, 'account_move_line', res, prefix='t', context=context
-        )
-
-        return res
-
-    def fields_view_get(
-        self, cr, uid, view_id=None, view_type='form', context=None,
-        toolbar=False, submenu=False
-    ):
-        """Override this method to hide unused analytic fields."""
-
-        res = super(account_asset_asset_streamline, self).fields_view_get(
-            cr, uid, view_id=view_id, view_type=view_type, context=context,
-            toolbar=toolbar, submenu=submenu
-        )
-
-        analytic_osv = self.pool.get('analytic.structure')
-        res = analytic_osv.analytic_fields_view_get(
-            cr, uid, 'account_asset_asset', res, context=context
-        )
-        res = analytic_osv.analytic_fields_view_get(
-            cr, uid, 'account_move_line', res, prefix='t', context=context
-        )
-
-        return res
 
     def compute_depreciation_board(self, cr, uid, ids, context=None):
         """ Create the projected depreciation/correction lines in the
