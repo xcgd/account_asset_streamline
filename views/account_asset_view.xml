@@ -120,18 +120,10 @@
                     <page string="Management">
                         <group>
                             <group string="Asset Management">
-                                <field name="a1_id" />
-                                <field name="a2_id" />
-                                <field name="a3_id" />
-                                <field name="a4_id" />
-                                <field name="a5_id" />
+                                <div class="oe_analytic" attrs="{'invisible':[('description', '=', 'invisible')]}"/>
                             </group>
                             <group string="Transaction Management">
-                                <field name="t1_id" required="1" />
-                                <field name="t2_id" required="1" />
-                                <field name="t3_id" required="1" />
-                                <field name="t4_id" required="1" />
-                                <field name="t5_id" required="1" />
+                                <div class="oe_analytic" required="1" prefix="t" />
                             </group>
                         </group>
                     </page>
