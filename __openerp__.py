@@ -4,7 +4,7 @@
 ##############################################################################
 {
     'name': u"Asset Streamline",
-    'version': u"1.2.1",
+    'version': u"1.2.2",
     'author': u"XCG Consulting",
     'category': u"Custom Module",
     'description': u"""Includes several integrity fixes and optimizations over
@@ -14,7 +14,7 @@
     'depends': [
         'base',
         'account_streamline',
-        'analytic_structure'
+        'analytic_structure',
         'account_asset',
         'oemetasl',
     ],
