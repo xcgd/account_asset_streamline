@@ -2,8 +2,8 @@
 <openerp>
 <data>
 
-    <record model="ir.ui.view" id="view_account_asset_asset_form">
-        <field name="name">account.asset.asset.form</field>
+    <record model="ir.ui.view" id="view_account_asset_streamline_asset_form">
+        <field name="name">account.asset.streamline.asset.form</field>
         <field name="model">account.asset.asset</field>
         <field name="inherit_id" ref="account_asset.view_account_asset_asset_form"/>
         <field name="arch" type="xml">
@@ -120,10 +120,10 @@
                     <page string="Management">
                         <group>
                             <group string="Asset Management">
-                                <div class="oe_analytic" attrs="{'invisible':[('description', '=', 'invisible')]}"/>
+                                <div class="oe_analytic" />
                             </group>
                             <group string="Transaction Management">
-                                <div class="oe_analytic" required="1" prefix="t" />
+                                <div class="oe_analytic" prefix="t" required="1" />
                             </group>
                         </group>
                     </page>
@@ -161,8 +161,8 @@
         </field>
     </record>
 
-    <record model="ir.ui.view" id="view_account_asset_asset_tree">
-        <field name="name">account.asset.asset.tree</field>
+    <record model="ir.ui.view" id="view_account_asset_streamline_asset_tree">
+        <field name="name">account.asset.streamline.asset.tree</field>
         <field name="model">account.asset.asset</field>
         <field name="inherit_id" ref="account_asset.view_account_asset_asset_tree"/>
         <field name="field_parent">child_ids</field>
@@ -183,8 +183,8 @@
         </field>
     </record>
 
-    <record model="ir.ui.view" id="view_account_asset_category_form">
-        <field name="name">account.asset.category.form</field>
+    <record model="ir.ui.view" id="view_account_asset_streamline_category_form">
+        <field name="name">account.asset.streamline.category.form</field>
         <field name="model">account.asset.category</field>
         <field name="inherit_id" ref="account_asset.view_account_asset_category_form"/>
         <field name="arch" type="xml">
