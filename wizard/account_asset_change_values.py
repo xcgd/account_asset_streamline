@@ -65,6 +65,7 @@ class asset_modify_values(osv.TransientModel):
         }
         history_obj.create(cr, uid, history_vals, context=context)
 
+        asset_obj.compute_depreciation_board(cr, uid, [asset_id], context)
         return {'type': 'ir.actions.act_window_close'}
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

@@ -137,6 +137,12 @@
                 <xpath expr="//field[@name='history_ids']" position="after" >
                     <field name="values_history_ids" readonly="1"/>
                 </xpath>
+                <xpath expr="//sheet" position="after">
+                    <div class="oe_chatter">
+                        <field name="message_ids" widget="mail_thread"
+                            modifiers="{}" />
+                    </div>
+                </xpath>
             </data>
         </field>
     </record>

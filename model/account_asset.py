@@ -21,9 +21,11 @@ class account_asset_category_streamline(osv.Model):
 class account_asset_asset_streamline(osv.Model):
 
     _name = 'account.asset.asset'
-    _inherit = 'account.asset.asset'
+    _inherit = ["account.asset.asset", "mail.thread"]
 
     def compute_depreciation_board(self, cr, uid, ids, context=None):
+        """ Creates the projected depreciation/correction lines in the
+        Depreciation Board table."""
 
         assets = self.browse(cr, uid, ids, context=context)
         line_osv = self.pool.get('account.asset.depreciation.line')
@@ -228,8 +230,6 @@ class account_asset_asset_streamline(osv.Model):
         if not theoretical_depreciation:
             initial = asset.adjusted_gross_value - asset.adjusted_salvage_value
             theoretical_depreciation = initial / total_days
-
-        print "Old depreciation:", theoretical_depreciation
         expected_depreciation = theoretical_depreciation * elapsed_days
         correction = expected_depreciation - vals['depreciation_total']
 
@@ -241,7 +241,6 @@ class account_asset_asset_streamline(osv.Model):
             yield {'type': 'correction', 'amount': correction, 'vals': vals}
 
         daily_depreciation = vals['net_book_value'] / remaining_days
-        print daily_depreciation
 
         if remaining_days <= prorata:
             depreciation = vals['net_book_value']
@@ -256,16 +255,9 @@ class account_asset_asset_streamline(osv.Model):
         vals['net_book_value'] -= depreciation
 
         next_days = elapsed_days + min(prorata, remaining_days)
-        print vals['depreciation_total'], next_days
         theoretical_depreciation = vals['depreciation_total'] / next_days
-        print "New depreciation:", theoretical_depreciation
         vals['theoretical_depreciation'] = theoretical_depreciation
 
-        print "-------Values-------"
-        print vals
-        print "  ###   AMOUNT:", depreciation, "  ###  "
-        print "--------------------"
-        print
         yield {'type': 'depreciation', 'amount': depreciation, 'vals': vals}
         return
 
@@ -673,6 +665,8 @@ class account_asset_asset_streamline(osv.Model):
 
         line_osv = self.pool.get('account.asset.depreciation.line')
         period_osv = self.pool.get('account.period')
+        move_osv = self.pool.get('account.move')
+        move_line_osv = self.pool.get('account.move.line')
         period = period_osv.browse(cr, uid, period_id, context=context)
         today = date.today()
         today_str = datetime.strftime(today, '%Y-%m-%d')
@@ -693,12 +687,56 @@ class account_asset_asset_streamline(osv.Model):
                     continue
 
                 if depr['type'] == 'correction':
-                    name = _(u"Correction")
+                    type_str = _(u"Correction")
                 else:
-                    name = _(u"Depreciation")
+                    type_str = _(u"Depreciation")
+
+                journal_id = asset.category_id.journal_id.id
+                move_vals = {
+                    'name': asset.name,
+                    'date': today_str,
+                    'ref': type_str,
+                    'period_id': period_id,
+                    'journal_id': journal_id,
+                    'state': 'draft'
+                }
+                move_id = move_osv.create(cr, uid, move_vals, context=context)
+
+                line_ref = u"{0} / {1}".format(asset.name, period.name)
+                line_name = _(u"Mensual {type} of Asset {ref}").format(
+                    type=type_str, ref=line_ref
+                )
+                stocks_acc = asset.category_id.account_depreciation_id
+                expense_acc = asset.category_id.account_expense_depreciation_id
+                (cre, deb) = [0 if i < 0 else i for i in [amount, -amount]]
+                line_vals_base = {
+                    'asset_id': asset.id,
+                    'move_id': move_id,
+                    'period_id': period_id,
+                    'journal_id': journal_id,
+                    'ref': line_ref,
+                    'partner_id': uid,
+                    'date': today_str,
+                    'name': line_name,
+                    'currency_id': asset.currency_id.id,
+                    'a1_id': asset.t1_id.id,
+                    'a2_id': asset.t2_id.id,
+                    'a3_id': asset.t3_id.id,
+                    'a4_id': asset.t4_id.id,
+                    'a5_id': asset.t5_id.id,
+                }
+
+                for acc in (stocks_acc, expense_acc):
+                    line_vals = line_vals_base.copy()
+                    line_vals.update(account_id=acc.id, credit=cre, debit=deb)
+                    move_line_osv.create(cr, uid, line_vals, context=context)
+                    (cre, deb) = (deb, cre)
+                move_osv.write(
+                    cr, uid, [move_id], {'state': 'posted'}, context=context
+                )
 
                 depreciation_vals = {
-                    'name': name,
+                    'name': type_str,
                     'sequence': sequence,
                     'asset_id': asset.id,
                     'amount': amount,
@@ -706,7 +744,7 @@ class account_asset_asset_streamline(osv.Model):
                     'depreciated_value': old_depreciated_value,
                     'depreciation_date': today_str,
                     'depreciation_period': period_id,
-                    'move_id': 1,
+                    'move_id': move_id,
                 }
                 line_osv.create(cr, uid, depreciation_vals, context=context)
                 old_depreciated_value = vals['depreciation_total']
