@@ -358,7 +358,6 @@ class account_asset_asset_streamline(osv.Model):
             'period_id': period.id,
             'journal_id': journal,
             'ref': move_line_ref,
-            'partner_id': uid,
             'date': date_,
             'name': move_line_name,
             'currency_id': asset.currency_id.id,
