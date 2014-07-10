@@ -4,7 +4,7 @@
 ##############################################################################
 {
     'name': u"Asset Streamline",
-    'version': u"1.2.5",
+    'version': u"1.2.6",
     'author': u"XCG Consulting",
     'category': u"Custom Module",
     'description': u"""Includes several integrity fixes and optimizations over
