@@ -347,7 +347,6 @@ class account_asset_asset_streamline(osv.Model):
             'ref': move_ref,
             'period_id': period.id,
             'journal_id': journal,
-            'state': 'draft',
         }
         move = move_osv.create(cr, uid, move_vals, context=context)
 
@@ -383,10 +382,6 @@ class account_asset_asset_streamline(osv.Model):
             # Swap the credit and debit values for the second line.
             (credit, debit) = (debit, credit)
 
-        # Post the move.
-        move_osv.write(
-            cr, uid, [move], {'state': 'posted'}, context=context
-        )
         return move
 
     # Lists of fields used by functional fields (sum function and store value)
@@ -978,8 +973,9 @@ class account_asset_asset_streamline(osv.Model):
         today = date.today()
         today_str = datetime.strftime(today, '%Y-%m-%d')
 
+        period = period_osv.browse(cr, uid, period_id, context=context)
         if disposal is None:
-            period = period_osv.browse(cr, uid, period_id, context=context)
+            comp_period = period
             end_date = None
         else:
             # If depreciating for a disposal, use the period which corresponds
@@ -990,7 +986,9 @@ class account_asset_asset_streamline(osv.Model):
                 ('date_stop', '>=', disposal),
             ]
             search_ids = period_osv.search(cr, uid, domain, context=context)
-            period = period_osv.browse(cr, uid, search_ids[0], context=context)
+            comp_period = period_osv.browse(
+                cr, uid, search_ids[0], context=context
+            )
             end_date = datetime.strptime(disposal, "%Y-%m-%d").date()
 
         # Iterate for every asset.
@@ -1045,7 +1043,7 @@ class account_asset_asset_streamline(osv.Model):
 
             # Generate up to two lines: depreciation and/or correction.
             depr_iter = self._generate_depreciations(
-                asset, period, vals=vals, end_date=end_date
+                asset, comp_period, vals=vals, end_date=end_date
             )
             for depreciation in depr_iter:
 
