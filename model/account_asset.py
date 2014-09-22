@@ -334,7 +334,6 @@ class account_asset_asset_streamline(osv.Model):
         move_line_osv = self.pool.get('account.move.line')
         analytic_osv = self.pool.get('analytic.structure')
 
-        move_name = _(u"Asset Operation") if not mv_name else mv_name
         move_ref = _(u"Asset Operation") if not mv_ref else mv_ref
         move_line_ref = _(u"Asset Operation Line") if not ml_ref else ml_ref
         move_line_name = _(u"Asset Operation Line") if not ml_name else ml_name
@@ -342,7 +341,6 @@ class account_asset_asset_streamline(osv.Model):
 
         # Create the move entry.
         move_vals = {
-            'name': move_name,
             'date': date_,
             'ref': move_ref,
             'period_id': period.id,
