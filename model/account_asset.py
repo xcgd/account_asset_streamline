@@ -743,6 +743,8 @@ class account_asset_asset_streamline(osv.Model):
         'depreciation_disposal': 0.0,
         'method_period': 1,
         'service_date': lambda *a: time.strftime('%Y-%m-%d'),
+        # Ideally, remove the default value but this is transformed to 0 which force the user to enter a value
+        'method_number': None,
     }
 
     _constraints = [
