@@ -12,11 +12,11 @@
                     <attribute name="class">oe_form_sheet_width_wider</attribute>
                 </xpath>
                 <xpath expr="//button[@name='set_to_close']" position="replace">
-                    <button name="%(action_asset_close)d" states="open" string="Set to Close" groups="account.group_account_manager"
+                    <button name="%(action_asset_close)d" states="open" string="Set to Close" groups="account_asset_streamline.group_account_asset"
                         type="action" class="oe_highlight" context="{'default_asset_id': id, 'default_currency_id': currency_id}" />
                     <button name="reactivate" states="suspended" string="Reactivate" type="object"
-                        groups="account.group_account_manager" class="oe_highlight" />
-                    <button name="%(action_asset_suspend)d" states="open" string="Suspend" groups="account.group_account_manager"
+                        groups="account_asset_streamline.group_account_asset" class="oe_highlight" />
+                    <button name="%(action_asset_suspend)d" states="open" string="Suspend" groups="account_asset_streamline.group_account_asset"
                         context="{'default_asset_id': id}" type="action" />
                 </xpath>
                 <xpath expr="//field[@name='category_id']" position="attributes">

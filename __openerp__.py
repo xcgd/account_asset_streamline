@@ -36,6 +36,7 @@
     ],
     'data': [
         'data/asset_sequence.xml',
+        'security/security.xml',
         'security/ir.model.access.csv',
         'wizard/account_asset_close_view.xml',
         'wizard/account_asset_suspend_view.xml',

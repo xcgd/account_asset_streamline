@@ -39,7 +39,7 @@
     <menuitem parent="account_asset.menu_finance_assets" id="menu_action_account_asset_depreciation_wizard"
         sequence="300"
         action="action_account_asset_depreciation_wizard"
-        groups="account.group_account_manager"/>
+        groups="account_asset_streamline.group_account_asset"/>
 
 </data>
 </openerp>
