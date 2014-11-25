@@ -1,10 +1,10 @@
 account_asset_streamline 1.5
 
-* Added a new group that will be able to handle assets (goes between user and manager).
+- Added a new group that will be able to handle assets (goes between user and manager).
 
 account_asset_streamline 1.4.1
 
-* Entries are not forced to the posted state anymore, and should generate their internal number correctly when posted. Disposal depreciation/correction: move lines are now created for the disposal period.
+- TKT/2014/00673 [imp] no value/0 to method_number to force user to enter something
 
 account_asset_streamline 1.4
 

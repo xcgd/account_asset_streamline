@@ -1,0 +1,24 @@
+account_asset_streamline 1.5
+
+- Ajout d’un nouveau groupe de sécurité Immobilisation dans le groupe Comptabilité et finances (qui se place entre les comptables (user) et le DAF (manager)).
+
+account_asset_streamline 1.4.1
+
+- TKT/2014/00673 [imp] la valeur par défaut du nombre de mois pour l’immobilisation est passé par 0 pour obliger les utilisateurs à rentrer une valeur correcte.
+
+account_asset_streamline 1.4
+
+Version de production
+
+account_asset_streamline 1.3.2
+
+- Renommage de name sur les lignes d’écriture.
+
+account_asset_streamline 1.3.1
+
+- Les entrées ne sont plus forcées à posted, et devrait avoir un numéro interne correct lors du passage à l’état posted. 
+
+account_asset_streamline 1.3
+
+Version de production
+
