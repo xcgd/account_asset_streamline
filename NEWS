@@ -1,3 +1,8 @@
 1.5
 
-* Added a new group that will be able to handle assets (goes between user and manager). 
+* Added a new group that will be able to handle assets (goes between user and manager).
+
+1.4.1
+* Entries are not forced to the posted state anymore, and should generate their internal number correctly when posted. Disposal depreciation/correction: move lines are now created for the disposal period.
+
+
