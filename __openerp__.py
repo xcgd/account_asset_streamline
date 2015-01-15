@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-#    OpenERP, Open Source Management Solution
-#    Copyright (C) 2014 XCG Consulting
+#    Asset Management Streamline, for OpenERP
+#    Copyright (C) 2013 XCG Consulting (http://odoo.consulting)
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
