@@ -853,7 +853,7 @@ msgstr "Valeur nette comptable"
 #. module: account_asset_streamline
 #: selection:account.asset.asset,state:0
 msgid "Running"
-msgstr "Actif"
+msgstr "Active"
 
 #. module: account_asset_streamline
 #: selection:account.asset.asset,state:0
@@ -864,3 +864,8 @@ msgstr "Suspendu"
 #: selection:account.asset.asset,state:0
 msgid "Disposed"
 msgstr "Cédé"
+
+#. module: account_asset_streamline
+#: selection:account.asset.asset,state:0
+msgid "Draft"
+msgstr "Brouillon"
