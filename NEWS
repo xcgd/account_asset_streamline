@@ -1,3 +1,8 @@
+account_asset_streamline 1.6
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Added missing rights for the asset group.
+
 account_asset_streamline 1.5
 
 - Added a new group that will be able to handle assets (goes between user and manager).
