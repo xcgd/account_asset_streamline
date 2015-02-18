@@ -26,7 +26,7 @@
     'description': """Includes several integrity fixes and optimizations over
     the standard Asset Management module.
     """,
-    'website': 'http://www.openerp-experts.com/',
+    'website': 'http://odoo.consulting/',
     'depends': [
         'base',
         'account_streamline',
