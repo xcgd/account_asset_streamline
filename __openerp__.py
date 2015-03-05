@@ -20,7 +20,7 @@
 ##############################################################################
 {
     'name': "Asset Management Streamline",
-    'version': '1.5',
+    'version': '1.6',
     'author': "XCG Consulting",
     'category': "Accounting & Finance",
     'description': """Includes several integrity fixes and optimizations over
