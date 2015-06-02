@@ -30,6 +30,7 @@
     'depends': [
         'base',
         'account_streamline',
+        'account_invoice_streamline',
         'analytic_structure',
         'account_asset',
         'oemetasl',
